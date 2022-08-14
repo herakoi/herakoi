@@ -5,7 +5,7 @@ import cv2
 
 import mido
 import rtmidi
-import rtmidi.midiconstants as midiconst
+import rtmidi.midiconstants as ctmidi
 
 import time
 
@@ -29,129 +29,126 @@ if midiout.get_ports(): midiout.open_port(0)
 else: midiout.open_virtual_port('sonic')
 
 mpHands = mp.solutions.hands
-mpDraw  = mp.solutions.drawing_utils
+mpDraws = mp.solutions.drawing_utils
 mpStyle = mp.solutions.drawing_styles
-hands   = mpHands.Hands(max_num_hands=2)
+opHands = mpHands.Hands(max_num_hands=2)
 
-# Init cpu time to compute frames per second
-pTime = 0
-cTime = 0
- 
-# Init image read
-musimage_path = 'JWST.png'
-musimage = cv2.imread(musimage_path)
-musimage_h, musimage_w, _ = musimage.shape
+cvVideo = cv2.VideoCapture(0)
 
-musimage_HSV = cv2.cvtColor(musimage, cv2.COLOR_BGR2HSV)
-musimage_hue = musimage_HSV[:,:,0].copy()
-musimage_sat = musimage_HSV[:,:,1].copy()
-musimage_bri = musimage_HSV[:,:,2].copy()
+opIndex = 8
+opColor = {'Left': (0,255,  0), 
+          'Right': (0,255,255)}
 
-musimage_hue_val = (musimage_hue.min(),musimage_hue.max())
-musimage_bri_val = (musimage_bri.min(),musimage_bri.max())
+# ------------------------
 
-cap = cv2.VideoCapture(0)
+opMusic = cv2.imread('JWST.png')
+opMusicH, opMusicW, _ = opMusic.shape
 
-lhbox = 50; lhcol = (0,255,0)
-rhbox = 50; rhcol = (0,255,255)
+opMusicHSV = cv2.cvtColor(opMusic,cv2.COLOR_BGR2HSV)
+opMusicHue = opMusicHSV[:,:,0].copy(); ctMusicHue = (opMusicHue.min(),opMusicHue.max())
+opMusicSat = opMusicHSV[:,:,1].copy(); ctMusicSat = (opMusicSat.min(),opMusicSat.max())
+opMusicBri = opMusicHSV[:,:,2].copy(); ctMusicBri = (opMusicBri.min(),opMusicBri.max())
 
-toc = 0.01
+opVideo = cv2.VideoCapture(0)
+
+off = 0.25
+toc = 0.25
 tic = time.time()
 
-lhold = [int(musimage_w/2),int(musimage_h/2),122]
-rhold = [int(musimage_w/2),int(musimage_h/2),122]
+onMusic = False
+
+lhMusicBox = 50
+lhMusicOld = [int(opMusicW/2),int(opMusicH/2),122]
+
 while True:
-  success, frame = cap.read()
-  frame = cv2.flip(frame, 1)
-  frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+  _, imFrame = opVideo.read()
+  imFrame = cv2.flip(imFrame,1)
+  imFrameRGB = cv2.cvtColor(imFrame,cv2.COLOR_BGR2RGB)
 
-  music = np.copy(musimage)
-  results = hands.process(frameRGB)
-  
-  lhfreq, lhvelo = 63, 0
-  rhfreq, rhvelo = 63, 0
-  if results.multi_hand_landmarks:
-    for hi, handLms in enumerate(results.multi_hand_landmarks):
+  imMusic = opMusic.copy()
+  imHands = opHands.process(imFrameRGB)
 
-      mpDraw.draw_landmarks(frame,handLms,mpHands.HAND_CONNECTIONS,None)
-      mpDraw.draw_landmarks(music,handLms,mpHands.HAND_CONNECTIONS,None)
+  lhMidiF, lhMidiV = 63, 0
+  rhMidiF, rhMidiV = 63, 0
+  if imHands.multi_hand_landmarks:
+    for mi, imMarks in enumerate(imHands.multi_hand_landmarks):
 
-      hand_label = results.multi_handedness[hi].classification[0].label
+      opFrameH, opFrameW, _ = imFrame.shape
 
-      h, w, c = frame.shape
-      for li, lm in enumerate(handLms.landmark):
-        cx, cy = int(lm.x *w), int(lm.y*h)
-        if li==8:
-          if   hand_label=='Left' : color = lhcol
-          elif hand_label=='Right': color = rhcol
-        else: color = (0,0,0)
+      mpDraws.draw_landmarks(imFrame,imMarks,mpHands.HAND_CONNECTIONS,None)
+      mpDraws.draw_landmarks(imMusic,imMarks,mpHands.HAND_CONNECTIONS,None)
+
+      imLabel = imHands.multi_handedness[mi].classification[0].label
+      imPoint = imMarks.landmark[opIndex]
+
+      pxMusic = [int(imPoint.x*opMusicW),int(imPoint.y*opMusicH),np.abs(imPoint.z)*300]
+      pxFrame = [int(imPoint.x*opFrameW),int(imPoint.y*opFrameH),np.abs(imPoint.z)*300]
+
+      cv2.circle(imMusic,(pxMusic[0],pxMusic[1]),np.clip(int(pxMusic[2]),2,None),opColor[imLabel],-1)
+      cv2.circle(imFrame,(pxFrame[0],pxFrame[1]),np.clip(int(pxFrame[2]),2,None),opColor[imLabel],-1)
+
+    # ----------
+
+      if imLabel=='Left':
+        lhMusicPos = pxMusic
+
+        lhMusicHue = np.mean(opMusicHue[np.clip(lhMusicPos[1]-lhMusicBox//2,0,opMusicH-1):np.clip(lhMusicPos[1]+lhMusicBox//2,0,opMusicH-1),
+                                        np.clip(lhMusicPos[0]-lhMusicBox//2,0,opMusicW-1):np.clip(lhMusicPos[0]+lhMusicBox//2,0,opMusicW-1)])
+
+        lhMusicSat = np.mean(opMusicSat[np.clip(lhMusicPos[1]-lhMusicBox//2,0,opMusicH-1):np.clip(lhMusicPos[1]+lhMusicBox//2,0,opMusicH-1),
+                                        np.clip(lhMusicPos[0]-lhMusicBox//2,0,opMusicW-1):np.clip(lhMusicPos[0]+lhMusicBox//2,0,opMusicW-1)])
+
+        lhMusicBri = np.mean(opMusicBri[np.clip(lhMusicPos[1]-lhMusicBox//2,0,opMusicH-1):np.clip(lhMusicPos[1]+lhMusicBox//2,0,opMusicH),
+                                        np.clip(lhMusicPos[0]-lhMusicBox//2,0,opMusicW-1):np.clip(lhMusicPos[0]+lhMusicBox//2,0,opMusicW)])
+
+        lhMidiF = lhMusicHue; lhMidiF = 0 if np.isnan(lhMidiF) else lhMidiF; lhMidiF = int(np.interp(lhMidiF,ctMusicHue,(48,95)))
+        lhMidiV = lhMusicBri; lhMidiV = 0 if np.isnan(lhMidiV) else lhMidiV; lhMidiV = int(np.interp(lhMidiV,ctMusicBri,(0,127)))
+
+        if time.time()-tic>toc and not onMusic:
+          midiout.send_message(encode(ctmidi.NOTE_ON,lhMidiF,lhMidiV,channel=8)); lhMusicOld = lhMusicPos.copy()
+          onMusic = True
+
+        if time.time()-tic>toc+off and onMusic:
+          midiout.send_message(encode(ctmidi.NOTE_OFF,lhMidiF,0,channel=8))
+          onMusic = False
+          tic = time.time()
         
-        cv2.circle(frame,(cx,cy),np.clip(-int(lm.z*200),2,None),color,-1)
+      # ----------
 
-      lm = handLms.landmark[8]
-      
-      lhpos = [int(lm.x*musimage_w/2),int(lm.y*musimage_h/2),122]
-      rhpos = [int(lm.x*musimage_w/2),int(lm.y*musimage_h/2),1]
-      if   hand_label=='Left' :
-        lhpos = [int(lm.x*musimage_w),
-                 int(lm.y*musimage_h),
-                 np.abs(lm.z)]
-        cv2.circle(music,(lhpos[0],lhpos[1]),np.clip(-int(lm.z*300),2,None),lhcol,-1)
+      if imLabel=='Right':
+        rhMusicPos = pxMusic
 
-      elif hand_label=='Right':
-        rhpos = [int(lm.x*musimage_w),
-                 int(lm.y*musimage_h),
-                 np.abs(lm.z)]
-        cv2.circle(music,(rhpos[0],rhpos[1]),np.clip(-int(lm.z*300),2,None),rhcol,-1)
+        rhMusicHue = np.mean(opMusicHue[np.clip(rhMusicPos[1]-rhMusicBox//2,0,opMusicH-1):np.clip(rhMusicPos[1]+rhMusicBox//2,0,opMusicH-1),
+                                        np.clip(rhMusicPos[0]-rhMusicBox//2,0,opMusicW-1):np.clip(rhMusicPos[0]+rhMusicBox//2,0,opMusicW-1)])
 
-      lhhue = np.mean(musimage_hue[np.clip(lhpos[1]-lhbox//2,0,musimage_h-1):np.clip(lhpos[1]+lhbox//2,0,musimage_h-1),
-                                   np.clip(lhpos[0]-lhbox//2,0,musimage_w-1):np.clip(lhpos[0]+lhbox//2,0,musimage_w-1)])
+        rhMusicSat = np.mean(opMusicSat[np.clip(rhMusicPos[1]-rhMusicBox//2,0,opMusicH-1):np.clip(rhMusicPos[1]+rhMusicBox//2,0,opMusicH-1),
+                                        np.clip(rhMusicPos[0]-rhMusicBox//2,0,opMusicW-1):np.clip(rhMusicPos[0]+rhMusicBox//2,0,opMusicW-1)])
 
-      lhsat = np.mean(musimage_sat[np.clip(lhpos[1]-lhbox//2,0,musimage_h-1):np.clip(lhpos[1]+lhbox//2,0,musimage_h-1),
-                                   np.clip(lhpos[0]-lhbox//2,0,musimage_w-1):np.clip(lhpos[0]+lhbox//2,0,musimage_w-1)])
+        rhMusicBri = np.mean(opMusicBri[np.clip(rhMusicPos[1]-rhMusicBox//2,0,opMusicH-1):np.clip(rhMusicPos[1]+rhMusicBox//2,0,opMusicH),
+                                        np.clip(rhMusicPos[0]-rhMusicBox//2,0,opMusicW-1):np.clip(rhMusicPos[0]+rhMusicBox//2,0,opMusicW)])
 
-      lhbri = np.mean(musimage_bri[np.clip(lhpos[1]-lhbox//2,0,musimage_h-1):np.clip(lhpos[1]+lhbox//2,0,musimage_h),
-                                   np.clip(lhpos[0]-lhbox//2,0,musimage_w-1):np.clip(lhpos[0]+lhbox//2,0,musimage_w)])
+        rhMidiF = rhMusicHue; rhMidiF = 0 if np.isnan(rhMidiF) else rhMidiF; rhMidiF = int(np.interp(rhMidiF,ctMusicHue,(48,95)))
+        rhMidiV = rhMusicBri; rhMidiV = 0 if np.isnan(rhMidiV) else rhMidiV; rhMidiV = int(np.interp(rhMidiV,ctMusicBri,(0,127)))
 
-      rhhue = np.mean(musimage_hue[np.clip(rhpos[1]-rhbox//2,0,musimage_h-1):np.clip(rhpos[1]+rhbox//2,0,musimage_h-1),
-                                   np.clip(rhpos[0]-rhbox//2,0,musimage_w-1):np.clip(rhpos[0]+rhbox//2,0,musimage_w-1)])
+        if time.time()-tic>toc and not onMusic:
+          midiout.send_message(encode(ctmidi.NOTE_ON,rhMidiF,rhMidiV,channel=9)); rhMusicOld = rhMusicPos.copy()
+          onMusic = True
 
-      rhsat = np.mean(musimage_sat[np.clip(rhpos[1]-rhbox//2,0,musimage_h-1):np.clip(rhpos[1]+rhbox//2,0,musimage_h-1),
-                                   np.clip(rhpos[0]-rhbox//2,0,musimage_w-1):np.clip(rhpos[0]+rhbox//2,0,musimage_w-1)])
+        if time.time()-tic>toc+off and onMusic:
+          midiout.send_message(encode(ctmidi.NOTE_OFF,rhMidiF,0,channel=9))
+          onMusic = False
+          tic = time.time()
 
-      rhbri = np.mean(musimage_bri[np.clip(rhpos[1]-rhbox//2,0,musimage_h-1):np.clip(rhpos[1]+rhbox//2,0,musimage_h),
-                                   np.clip(rhpos[0]-rhbox//2,0,musimage_w-1):np.clip(rhpos[0]+rhbox//2,0,musimage_w)])
+    # ----------
 
-      lhfval = musimage_hue_val
-      lhvval = musimage_bri_val
-      lhfreq = lhhue; lhfreq = 0 if np.isnan(lhfreq) else lhfreq; lhfreq = int(np.interp(lhfreq,lhfval,(48,95)))
-      lhvelo = lhbri; lhvelo = 0 if np.isnan(lhvelo) else lhvelo; lhvelo = int(np.interp(lhvelo,lhvval,(0,127)))
+  else:
+    midiout.send_message(encode(ctmidi.NOTE_OFF,lhMidiF,0,channel=8))
+    midiout.send_message(encode(ctmidi.NOTE_OFF,lhMidiF,0,channel=9))
 
-      rhfval = musimage_hue_val
-      rhvval = musimage_bri_val
-      rhfreq = rhhue; rhfreq = 0 if np.isnan(rhfreq) else rhfreq; rhfreq = int(np.interp(rhfreq,rhfval,(48,95)))
-      rhvelo = rhbri; rhvelo = 0 if np.isnan(rhvelo) else rhvelo; rhvelo = int(np.interp(rhvelo,rhvval,(0,127)))
-
-      if np.abs(time.time()-tic)>toc:
-        if np.hypot(lhpos[0]-lhold[0],lhpos[1]-lhold[1])>1.00E-03*np.hypot(musimage_w,musimage_h):
-          midiout.send_message(encode(midiconst.NOTE_ON,lhfreq,lhvelo,channel=8)); lhold = lhpos.copy()
-          midiout.send_message(encode(midiconst.NOTE_ON,rhfreq,rhvelo,channel=9)); rhold = rhpos.copy()
-
-        time.sleep(0.01)
-        midiout.send_message(encode(midiconst.NOTE_OFF,lhfreq,0,channel=8))
-        midiout.send_message(encode(midiconst.NOTE_OFF,lhfreq,0,channel=9))
-        tic = time.time()
-
-        lhold = lhpos.copy()
-    else:
-      midiout.send_message(encode(midiconst.NOTE_OFF,lhfreq,0,channel=8))
-      midiout.send_message(encode(midiconst.NOTE_OFF,lhfreq,0,channel=9))
-
-  cv2.imshow('frame', frame)
-  cv2.imshow('musimage', music)
+  cv2.imshow('imFrame',imFrame)
+  cv2.imshow('imMusic',imMusic)
  
-  if cv2.waitKey(1) & 0xFF == ord('q'):
-    break
+  if cv2.waitKey(1) & 0xFF == ord('q'): break
 
-cap.release()
+opVideo.release()
 cv2.destroyAllWindows()
