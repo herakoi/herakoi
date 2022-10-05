@@ -9,6 +9,18 @@ import rtmidi.midiconstants as ctmidi
 
 import time
 
+NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+OCTAVES = list(range(11))
+NOTES_IN_OCTAVE = len(NOTES)
+
+def number_to_note(number: int) -> tuple:
+    octave = number // NOTES_IN_OCTAVE
+    assert octave in OCTAVES, errors['notes']
+    assert 0 <= number <= 127, errors['notes']
+    note = NOTES[number % NOTES_IN_OCTAVE]
+
+    return note, octave
+
 # ------------------------
 
 def encode(status,data1=None,data2=None,channel=None):
@@ -23,15 +35,17 @@ def encode(status,data1=None,data2=None,channel=None):
 
 # ------------------------
 
-midiout = rtmidi.MidiOut()
+#> midiout = rtmidi.MidiOut()
 
-if midiout.get_ports(): midiout.open_port(0)
-else: midiout.open_virtual_port('sonic')
+#> if midiout.get_ports(): midiout.open_port(0)
+#> else: midiout.open_virtual_port('sonic')
+
+midiout = mido.open_output(mido.get_output_names()[0])
 
 mpHands = mp.solutions.hands
 mpDraws = mp.solutions.drawing_utils
 mpStyle = mp.solutions.drawing_styles
-opHands = mpHands.Hands(max_num_hands=2)
+opHands = mpHands.Hands(max_num_hands=10)
 
 cvVideo = cv2.VideoCapture(0)
 
@@ -51,15 +65,21 @@ opMusicBri = opMusicHSV[:,:,2].copy(); ctMusicBri = (opMusicBri.min(),opMusicBri
 
 opVideo = cv2.VideoCapture(0)
 
-off = 0.25
-toc = 0.25
+off = 0.05
+toc = 0.05
 tic = time.time()
 
 onMusic = False
 
-lhMusicBox = 50
+lhMusicBox = 10
 lhMusicOld = [int(opMusicW/2),int(opMusicH/2),122]
 
+rhMusicBox = 10
+rhMusicOld = [int(opMusicW/2),int(opMusicH/2),122]
+
+bhMidiFold = 63
+
+print(' ')
 while True:
   _, imFrame = opVideo.read()
   imFrame = cv2.flip(imFrame,1)
@@ -70,7 +90,11 @@ while True:
 
   lhMidiF, lhMidiV = 63, 0
   rhMidiF, rhMidiV = 63, 0
+  bhMidiF, bhMidiV = 63, 0
   if imHands.multi_hand_landmarks:
+    bhMidiF = None
+    bhMidiV = None
+
     for mi, imMarks in enumerate(imHands.multi_hand_landmarks):
 
       opFrameH, opFrameW, _ = imFrame.shape
@@ -102,18 +126,10 @@ while True:
                                         np.clip(lhMusicPos[0]-lhMusicBox//2,0,opMusicW-1):np.clip(lhMusicPos[0]+lhMusicBox//2,0,opMusicW)])
 
         lhMidiF = lhMusicHue; lhMidiF = 0 if np.isnan(lhMidiF) else lhMidiF; lhMidiF = int(np.interp(lhMidiF,ctMusicHue,(48,95)))
-        lhMidiV = lhMusicBri; lhMidiV = 0 if np.isnan(lhMidiV) else lhMidiV; lhMidiV = int(np.interp(lhMidiV,ctMusicBri,(0,127)))
+        lhMidiV = lhMusicBri; lhMidiV = 0 if np.isnan(lhMidiV) else lhMidiV; lhMidiV = int(np.interp(lhMidiV,ctMusicBri,(50,127)))
 
-        if time.time()-tic>toc and not onMusic:
-          midiout.send_message(encode(ctmidi.NOTE_ON,lhMidiF,lhMidiV,channel=8)); lhMusicOld = lhMusicPos.copy()
-          onMusic = True
-
-        if time.time()-tic>toc+off and onMusic:
-          midiout.send_message(encode(ctmidi.NOTE_OFF,lhMidiF,0,channel=8))
-          onMusic = False
-          tic = time.time()
-        
-      # ----------
+        bhMidiF = lhMidiF
+        bhMidiV = lhMidiV
 
       if imLabel=='Right':
         rhMusicPos = pxMusic
@@ -127,23 +143,39 @@ while True:
         rhMusicBri = np.mean(opMusicBri[np.clip(rhMusicPos[1]-rhMusicBox//2,0,opMusicH-1):np.clip(rhMusicPos[1]+rhMusicBox//2,0,opMusicH),
                                         np.clip(rhMusicPos[0]-rhMusicBox//2,0,opMusicW-1):np.clip(rhMusicPos[0]+rhMusicBox//2,0,opMusicW)])
 
-        rhMidiF = rhMusicHue; rhMidiF = 0 if np.isnan(rhMidiF) else rhMidiF; rhMidiF = int(np.interp(rhMidiF,ctMusicHue,(48,95)))
-        rhMidiV = rhMusicBri; rhMidiV = 0 if np.isnan(rhMidiV) else rhMidiV; rhMidiV = int(np.interp(rhMidiV,ctMusicBri,(0,127)))
+        rhMidiF = rhMusicHue; rhMidiF = 0 if np.isnan(rhMidiF) else rhMidiF; rhMidiF = int(np.interp(rhMidiF,ctMusicHue,(21,107)))
+        rhMidiV = rhMusicBri; rhMidiV = 0 if np.isnan(rhMidiV) else rhMidiV; rhMidiV = int(np.interp(rhMidiV,ctMusicBri,(50,127)))
 
-        if time.time()-tic>toc and not onMusic:
-          midiout.send_message(encode(ctmidi.NOTE_ON,rhMidiF,rhMidiV,channel=9)); rhMusicOld = rhMusicPos.copy()
-          onMusic = True
+        bhMidiF = rhMidiF if bhMidiF is None else int(0.50*(rhMidiF+bhMidiF))
+        bhMidiV = rhMidiV if bhMidiV is None else int(0.50*(rhMidiV+bhMidiV))
+    
+    if bhMidiF is not None:
+      if time.time()-tic>toc and not onMusic:
+        midiout.send(mido.Message('note_on',channel=8,note=bhMidiF,velocity=bhMidiV)); bhMidiFold = bhMidiF
+        onMusic = True
+        
+        onPosixOld = pxMusic
 
-        if time.time()-tic>toc+off and onMusic:
-          midiout.send_message(encode(ctmidi.NOTE_OFF,rhMidiF,0,channel=9))
-          onMusic = False
-          tic = time.time()
+      if time.time()-tic>toc+off and np.hypot(onPosixOld[0]-pxMusic[0],onPosixOld[1]-pxMusic[1])>50:
+        for note in range(27,108):
+          midiout.send(mido.Message('note_off',channel=8,note=note))
+
+        midiout.send(mido.Message('note_off',channel=8,note=bhMidiF))
+        midiout.reset()
+        onMusic = False
+        tic = time.time()
+    else:
+      for note in range(27,108):
+        midiout.send(mido.Message('note_off',channel=8,note=note))
+
+    print(number_to_note(bhMidiF),end='\r')
+    bhMidiF, bhMidiV = 63, 0
 
     # ----------
 
   else:
-    midiout.send_message(encode(ctmidi.NOTE_OFF,lhMidiF,0,channel=8))
-    midiout.send_message(encode(ctmidi.NOTE_OFF,lhMidiF,0,channel=9))
+    for note in range(27,108):
+      midiout.send(mido.Message('note_off',channel=8,note=note))
 
   cv2.imshow('imFrame',imFrame)
   cv2.imshow('imMusic',imMusic)
