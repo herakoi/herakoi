@@ -8,6 +8,9 @@ import rtmidi
 import rtmidi.midiconstants as ctmidi
 
 import time
+import sys
+
+# ------------------------
 
 NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 OCTAVES = list(range(11))
@@ -35,12 +38,12 @@ def encode(status,data1=None,data2=None,channel=None):
 
 # ------------------------
 
-#> midiout = rtmidi.MidiOut()
+midinew = rtmidi.MidiOut()
 
-#> if midiout.get_ports(): midiout.open_port(0)
-#> else: midiout.open_virtual_port('sonic')
+if midinew.get_ports(): midinew.open_port(0)
+else: midinew.open_virtual_port('sonic')
 
-midiout = mido.open_output(mido.get_output_names()[0])
+midiout = mido.open_output('sonic',virtual=True)
 
 mpHands = mp.solutions.hands
 mpDraws = mp.solutions.drawing_utils
@@ -55,7 +58,8 @@ opColor = {'Left': (0,255,  0),
 
 # ------------------------
 
-opMusic = cv2.imread('JWST.png')
+imInput = sys.argv[1]
+opMusic = cv2.imread(imInput)
 opMusicH, opMusicW, _ = opMusic.shape
 
 opMusicHSV = cv2.cvtColor(opMusic,cv2.COLOR_BGR2HSV)
