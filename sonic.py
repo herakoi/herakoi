@@ -148,7 +148,7 @@ while True:
                                         np.clip(rhMusicPos[0]-rhMusicBox//2,0,opMusicW-1):np.clip(rhMusicPos[0]+rhMusicBox//2,0,opMusicW)])
 
         rhMidiF = rhMusicHue; rhMidiF = 0 if np.isnan(rhMidiF) else rhMidiF; rhMidiF = int(np.interp(rhMidiF,ctMusicHue,(21,107)))
-        rhMidiV = rhMusicBri; rhMidiV = 0 if np.isnan(rhMidiV) else rhMidiV; rhMidiV = int(np.interp(rhMidiV,ctMusicBri,(50,127)))
+        rhMidiV = rhMusicBri; rhMidiV = 0 if np.isnan(rhMidiV) else rhMidiV; rhMidiV = int(np.interp(rhMidiV,ctMusicBri,(10,127)))
 
         bhMidiF = rhMidiF if bhMidiF is None else int(0.50*(rhMidiF+bhMidiF))
         bhMidiV = rhMidiV if bhMidiV is None else int(0.50*(rhMidiV+bhMidiV))
