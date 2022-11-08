@@ -1,3 +1,3 @@
 import herakoi
 
-herakoi.start()
+herakoi.start(mode='single',notes=('C1','B8'))

@@ -1,14 +1,20 @@
 import numpy as np
+import re
 
 import cv2
 import mediapipe as mp
 
 import mido
 import rtmidi
-import rtmidi.midiconstants as ctmidi
 
+import time
 import sys
 
+vlims_ = (20,127) 
+flims_ = (48, 95) # C2-B5
+
+# Convert BGR image into HSV
+# -------------------------------------
 class gethsv:
   def __init__(self,inp):
     self.bgr = cv2.imread(inp)
@@ -16,22 +22,41 @@ class gethsv:
 
     self.h, self.w, _ = self.bgr.shape
 
+# Convert key name
+# Ported from the pretty-midi package
+# -------------------------------------
+def nametopitch(name):
+    pitch_map = {'C': 0, 'D': 2, 'E':  4, 'F':  5, 'G': 7, 'A': 9, 'B': 11}
+    accen_map = {'#': 1,  '': 0, 'b': -1, '!': -1}
+
+    try:
+      match = re.match(r'^(?P<n>[A-Ga-g])(?P<off>[#b!]?)(?P<oct>[+-]?\d+)$',name)
+
+      pitch = match.group('n').upper()
+      offset = accen_map[match.group('off')]
+      octave = int(match.group('oct'))
+    except:
+      raise ValueError('Improper note format: {}'.format(name))
+
+    return 12*(octave + 1) + pitch_map[pitch] + offset
+
 # Build the herakoi player
 # =====================================
 class start:
-  def __init__(self,port={},video=0,**kwargs):
-
+  def __init__(self,mode='single',port={},video=0,box=2,**kwargs):
+  
   # Run-time checks
   # -------------------------------------
     if len(sys.argv)<2:
-      print('Error > image path is missing')
-      sys.exit(42)
+      raise IOError('Image path is missing')
+
+    if mode=='party':
+      raise NotImplementedError('"party mode" not yet implemented')
 
     self.valname = 'herakoi'
 
   # Build virtual MIDI port
   # -------------------------------------
-
     midinew = rtmidi.MidiOut()
 
     if midinew.get_ports(): midinew.open_port(port.get('value',0))
@@ -41,7 +66,6 @@ class start:
 
   # Start capture from webcam
   # -------------------------------------
-
     self.opvideo = cv2.VideoCapture(video)
     self.opmusic = gethsv(sys.argv[1])
 
@@ -50,33 +74,45 @@ class start:
     self.mpstyle = mp.solutions.drawing_styles
 
     self.opindex = 8
+    self.oppatch = np.minimum(self.opmusic.w,self.opmusic.h)
+    self.oppatch = int(np.clip((box/100)*self.oppatch,2,None))
     self.opcolor = {'Left': (0,255,  0), 
                    'Right': (0,255,255)}
-    self.run()
 
+
+    if 'volume' in kwargs:
+      vlims = (np.interp(kwargs['volume'],(0,100),(0,127)),127)
+    else: vlims = vlims_
+
+    if 'notes' in kwargs:
+      flims = (nametopitch(kwargs['notes'][0]),
+               nametopitch(kwargs['notes'][1]))
+
+      print(flims)
+    else: flims = flims_
+
+    self.run(mode,vlims=vlims,flims=flims,**kwargs)
 
 # Convert H and B to note and volume
 # =====================================
-  def getmex(self,posx,box=10,vlims=(50,127),flims=(48,95)):
-    musichue = np.median(self.opmusic.hsv[np.clip(posx[1]-box//2,0,self.opmusic.h-1):np.clip(posx[1]+box//2,0,self.opmusic.h-1),
-                                          np.clip(posx[0]-box//2,0,self.opmusic.w-1):np.clip(posx[0]+box//2,0,self.opmusic.w-1),0])
+  def getmex(self,posx,vlims=vlims_,flims=flims_):
+    def getval(img,clip):
+      val = np.median(img[np.clip(posx[1]-self.oppatch//2,0,self.opmusic.h-1):np.clip(posx[1]+self.oppatch//2,0,self.opmusic.h-1),
+                          np.clip(posx[0]-self.oppatch//2,0,self.opmusic.w-1):np.clip(posx[0]+self.oppatch//2,0,self.opmusic.w-1)])
+      vmidi = val; vmidi = 0 if np.isnan(vmidi) else vmidi; vmidi = int(np.interp(vmidi,(img.min(),img.max()),clip))
 
-    musicbri = np.median(self.opmusic.hsv[np.clip(posx[1]-box//2,0,self.opmusic.h-1):np.clip(posx[1]+box//2,0,self.opmusic.h-1),
-                                          np.clip(posx[0]-box//2,0,self.opmusic.w-1):np.clip(posx[0]+box//2,0,self.opmusic.w-1),2])
+      return vmidi
 
-    fmidi = musichue; fmidi = 0 if np.isnan(fmidi) else fmidi; fmidi = int(np.interp(fmidi,(self.opmusic.hsv[...,0].min(),self.opmusic.hsv[...,0].max()),flims))
-    vmidi = musicbri; vmidi = 0 if np.isnan(vmidi) else vmidi; vmidi = int(np.interp(vmidi,(self.opmusic.hsv[...,2].min(),self.opmusic.hsv[...,2].max()),vlims))
-
-    return fmidi, vmidi
+    return getval(self.opmusic.hsv[...,0],flims), \
+           getval(self.opmusic.hsv[...,2],vlims)
 
 
 # Draw and return hand markers position
 # =====================================
-  def posndraw(self,immusic,imframe,immarks):
+  def posndraw(self,immusic,imframe,immarks,imlabel):
     self.mpdraws.draw_landmarks(imframe,immarks,self.mphands.HAND_CONNECTIONS,None)
     self.mpdraws.draw_landmarks(immusic,immarks,self.mphands.HAND_CONNECTIONS,None)
 
-    imlabel = imhands.multi_handedness[mi].classification[0].label
     impoint = immarks.landmark[self.opindex]
 
     pxmusic = [int(impoint.x*self.opmusic.w),
@@ -89,69 +125,73 @@ class start:
 
     return pxmusic
 
-
-# Run herakoi
-# =====================================
-  def run(self,mode='single',**kwargs)
-    ophands = self.mphands.Hands(max_num_hands=2)
-
-    while True:
-      _, imframe = self.opvideo.read()
-      imframe = cv2.flip(imframe,1)
-      imframe = cv2.cvtColor(imframe,cv2.COLOR_BGR2RGB)
-
-      immusic = self.opmusic.bgr.copy()
-      imhands = ophands.process(imframe)
-
-      if imhands.multi_hand_landmarks:
-        if mode=='mode': single(imframe,immusic,imhands)
-
-
 # Single-user mode
 # =====================================
-  def single(self,**kwargs):
-
+  def run(self,mode='single',vlims=vlims_,flims=flims_,**kwargs):
     ophands = self.mphands.Hands(max_num_hands=2)
 
+    onmusic = False
+
+    pxshift = kwargs.get('shift',2)
+    pxshift = (pxshift/100)*np.minimum(self.opmusic.w,self.opmusic.h)
+
+    toctime = kwargs.get('toc',0.05)
+    offtime = kwargs.get('off',0.05)
+    tictime = time.time()
+
     while True:
-      _, imframe = self.opvideo.read()
-      imframe = cv2.flip(imframe,1)
-      imframe = cv2.cvtColor(imframe,cv2.COLOR_BGR2RGB)
+      _, opframe = self.opvideo.read()
+      opframe = cv2.flip(opframe,1)
+      imframe = cv2.cvtColor(opframe,cv2.COLOR_BGR2RGB)
 
       immusic = self.opmusic.bgr.copy()
       imhands = ophands.process(imframe)
 
       bhmidif = None
       bhmidiv = None
+
       if imhands.multi_hand_landmarks:
         for mi, immarks in enumerate(imhands.multi_hand_landmarks):
-          pxmusic = posndraw(immusic,imframe,immarks)
+          imlabel = imhands.multi_handedness[mi].classification[0].label
 
-          if imLabel=='Left':
-            bhmidif, bhmidiv = self.getmex(pxmusic)
-          if imLabel=='Right':
-            rhmidif, rhmidiv = self.getmex(pxmusic)
+          pxmusic = self.posndraw(immusic,imframe,immarks,imlabel)
+
+          if (mode=='single' and imlabel=='Left') or (mode=='party'):
+            bhmidif, bhmidiv = self.getmex(pxmusic,vlims,flims)
+          
+          if (mode=='single' and imlabel=='Right'):
+            rhmidif, rhmidiv = self.getmex(pxmusic,vlims,flims)
 
             bhmidif = rhmidif if bhmidif is None else int(0.50*(rhmidif+bhmidif))
             bhmidiv = rhmidiv if bhmidiv is None else int(0.50*(rhmidiv+bhmidiv))
-        
 
-# Single-user mode
+        if mode=='single':
+          if (bhmidif is not None) and (bhmidiv is not None):
+            if time.time()-tictime>toctime and not onmusic:
+              self.midiout.send(mido.Message('note_on',channel=8,note=bhmidif,velocity=bhmidiv))
+              pxmusicold = pxmusic
+              onmusic = True
+
+            if time.time()-tictime>toctime+offtime and np.hypot(pxmusicold[0]-pxmusic[0],pxmusicold[1]-pxmusic[1])>pxshift:
+              self.midiout.send(mido.Message('note_off',channel=8,note=bhmidif))
+              self.panic(); onmusic = False
+              
+              tic = time.time()
+          else: self.panic()
+      else: self.panic()
+
+      cv2.imshow('imframe',opframe)
+      cv2.imshow('immusic',immusic)
+     
+      if cv2.waitKey(1) & 0xFF == ord('q'): break
+
+    self.opvideo.release()
+    cv2.destroyAllWindows()
+
+
+# Turn off all MIDI notes
 # =====================================
-  def party(self,**kwargs):
-    ophands = self.mphands.Hands(max_num_hands=kwargs.get('max_num_hands',100))
-
-    while True:
-      _, imframe = self.opvideo.read()
-      imframe = cv2.flip(imframe,1)
-      imframe = cv2.cvtColor(imframe,cv2.COLOR_BGR2RGB)
-
-      immusic = self.opmusic.bgr.copy()
-      imhands = ophands.process(imframe)
-
-      if imhands.multi_hand_landmarks:
-        for mi, immarks in enumerate(imhands.multi_hand_landmarks):
-          pxmusic = posndraw(immusic,imframe,immarks)
-
-          ohmidif, ohmidiv = self.getmex(pxmusic)
-    
+  def panic(self):
+    for note in range(0,127):
+      self.midiout.send(mido.Message('note_off',channel=8,note=note))
+    self.midiout.reset()
