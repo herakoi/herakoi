@@ -1,4 +1,4 @@
-# Herakoi 
+# herakoi 
 
 `herakoi` is a motion-sensing sonification experiment. 
 
