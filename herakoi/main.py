@@ -126,7 +126,9 @@ class start:
       wi = int(0.50*(image.shape[1]-wk))
       return image[:,wi:-wi]
     else:
-      return image
+      hk = self.opmusic.h*image.shape[1]/self.opmusic.w
+      hi = int(0.50*(image.shape[0]-hk))
+      return image[hi:-hi,:]
 
 # Single-user mode
 # =====================================
