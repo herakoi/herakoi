@@ -45,4 +45,5 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License
 Copyright 2022 Michele Ginolfi, Luca Di Mascolo, and contributors.
-herakoi is free software made available under the MIT License. For details see the LICENSE file.
+
+herakoi is a free software made available under the MIT License. For details see the LICENSE file.
