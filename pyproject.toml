@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.isort]
-known_third_party = ["numpy","time","re","sys","mediapipe","mediapipe-silicon"]
+known_third_party = ["mediapipe","mediapipe-silicon"]
 
 [project]
 name = "herakoi"
@@ -22,7 +22,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Operating System :: OS Independent",
 ]
-dependencies = ["mido>=1.2","rtmidi>=1.4","cv2>=4.6"]
+dependencies = ["mido>=1.2","python-rtmidi>=1.4","opencv-python>=4.6","numpy>=1.23"]
 
 [project.urls]
 "Homepage" = "https://github.com/lucadimascolo/herakoi"
