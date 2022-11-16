@@ -29,26 +29,10 @@ pip install mediapipe-silicon
 
 ## Usage
 
-A little intro about how to run Herakoi.
-
-things to mention:
-
-- open your favorite MIDI virtual keyboard and then run herakoi.py 
-- which parameters will change the sound output and how to change them in the code.
-
-- how smal / large should be the image sizes?
-- which MIDI players did we test (GarageBand, l'altro che non mi ricordo il nome etc..)
-- possibile problema con le videocamere virtuali spesso pre-installate sui computers
-- shall we write here possible caveats? or maybe start a new section "Caveats and Future Improvments"?
-
-*** 
-
-
-```bash
-python herakoi.py your_favorite_image.jpeg
-
-- open GarageBand
-```
+1. download the `init.py` file from this GitHub repository
+2. run `python init.py path_to_your_favorite_image`
+3. open your favorite MIDI virtual keyboard
+4. have fun!
 
 
 ## FAQs
