@@ -1,27 +1,30 @@
 # Herakoi 
 
-Herakoi is a motion-sensing sonification experiment. 
+`herakoi` is a motion-sensing sonification experiment. 
 
-It uses a Machine Learning (ML)-based algorithm for hand recognition to track in real-time the position of your hands in the scene observed by a webcam connected to your computer. The model landmarks coordinates of your hands are then re-projected onto the pixel coordinates of your favorite image. The visual properties of the "touched" pixels (color and saturation %check: write more?%) are then converted into sound properties of your favorite instrument, which you can choose from your favorite virtual MIDI keyboard. %check: write more?%
+It uses a Machine Learning (ML)-based algorithm for hand recognition to track in real-time the position of your hands in the scene observed by a webcam connected to your computer. The model landmarks coordinates of your hands are then re-projected onto the pixel coordinates of your favorite image. The visual properties of the "touched" pixels (at the moment, color and saturation) are then converted into sound properties of your favorite instrument, which you can choose from your favorite virtual MIDI keyboard.
 
 In this way, you can hear the sound of any images, for educational, artistic, or just-fun purposes!
 
-Fully written in python, Herakoi requires relatively little computational power and can be run on different on the most popular operating systems (macOS, Microsoft Windows, Linux). 
+Fully written in python, `herakoi` requires relatively little computational power and can be run on different on the most popular operating systems (macOS, Microsoft Windows, Linux). 
 
 
 ## Installation
 
-A little intro about the installation. 
-
-%check: add a section Requirments?%
-
-%check% Make sure you have python 3 installed on your computer. If not we suggest you to install it along with the Anaconda Distribution % check: really necessary?% at https://www.anaconda.com/products/distribution. This will ensure that you have the standard libreries (e.g., numpy, time, sys) already installed. You can install the other required libraries through pip:
+`herakoi` runs on python 3, so make sure to have it installed on your computer. The most stable release of `herakoi` can then be installed through [pip](https://pip.pypa.io/en/stable/) simply as
 
 ```bash
-pip install opencv-python
+pip install herakoi
+```
+This will install `herakoi` as well as all the necessary dependencies. Before firing up `herakoi`, you however have to install an additional package, [`mediapipe`](https://google.github.io/mediapipe/). In general, you should be able to do so via
+
+```bash
 pip install mediapipe
+```
+If your computer is instead equipped with an Apple Silicon chip, you should use
+
+```
 pip install mediapipe-silicon
-pip install python-rtmidi
 ```
 
 ## Usage
@@ -48,16 +51,14 @@ python herakoi.py your_favorite_image.jpeg
 ```
 
 
-
-
 ## FAQs
 
-A list of frequently asked questions
+A list of frequently asked questions.
 
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change, or contact the authors.
 
 ## License
-
-% dovremmo usare una cosa tipo Creative Commons.. poi vediamo bene come formulare la frase %
+Copyright 2022 Michele Ginolfi, Luca Di Mascolo, and contributors.
+herakoi is free software made available under the MIT License. For details see the LICENSE file.
