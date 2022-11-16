@@ -10,7 +10,7 @@ import rtmidi
 import time
 import sys
 
-vlims_ = (20,127) 
+vlims_ = (40,127) 
 flims_ = (48, 95) # C2-B5
 
 # Convert BGR image into HSV
@@ -79,7 +79,6 @@ class start:
     self.opcolor = {'Left': (0,255,  0), 
                    'Right': (0,255,255)}
 
-
     if 'volume' in kwargs:
       vlims = (np.interp(kwargs['volume'],(0,100),(0,127)),127)
     else: vlims = vlims_
@@ -99,31 +98,35 @@ class start:
     def getval(img,clip):
       val = np.median(img[np.clip(posx[1]-self.oppatch//2,0,self.opmusic.h-1):np.clip(posx[1]+self.oppatch//2,0,self.opmusic.h-1),
                           np.clip(posx[0]-self.oppatch//2,0,self.opmusic.w-1):np.clip(posx[0]+self.oppatch//2,0,self.opmusic.w-1)])
-      vmidi = val; vmidi = 0 if np.isnan(vmidi) else vmidi; vmidi = int(np.interp(vmidi,(img.min(),img.max()),clip))
-
+      vmidi = 0 if np.isnan(val) else val
+      vmidi = int(np.interp(vmidi,(img.min(),img.max()),clip))
       return vmidi
 
     return getval(self.opmusic.hsv[...,0],flims), \
            getval(self.opmusic.hsv[...,2],vlims)
 
-
 # Draw and return hand markers position
 # =====================================
-  def posndraw(self,immusic,imframe,immarks,imlabel):
-    self.mpdraws.draw_landmarks(imframe,immarks,self.mphands.HAND_CONNECTIONS,None)
-    self.mpdraws.draw_landmarks(immusic,immarks,self.mphands.HAND_CONNECTIONS,None)
+  def posndraw(self,frame,marks,label):
+    self.mpdraws.draw_landmarks(frame,marks,self.mphands.HAND_CONNECTIONS,None)
 
-    impoint = immarks.landmark[self.opindex]
+    point = marks.landmark[self.opindex]
+    posix = [int(point.x*frame.shape[1]),
+             int(point.y*frame.shape[0]),np.abs(point.z)*300]
 
-    pxmusic = [int(impoint.x*self.opmusic.w),
-               int(impoint.y*self.opmusic.h),np.abs(impoint.z)*300]
-    pxframe = [int(impoint.x*imframe.shape[1]),
-               int(impoint.y*imframe.shape[0]),np.abs(impoint.z)*300]
+    cv2.circle(frame,(posix[0],posix[1]),np.clip(int(posix[2]),2,None),self.opcolor[label],-1)
 
-    cv2.circle(immusic,(pxmusic[0],pxmusic[1]),np.clip(int(pxmusic[2]),2,None),self.opcolor[imlabel],-1)
-    cv2.circle(imframe,(pxframe[0],pxframe[1]),np.clip(int(pxframe[2]),2,None),self.opcolor[imlabel],-1)
+    return posix
 
-    return pxmusic
+# Rescale image according to input
+# =====================================
+  def rescale(self,image):
+    if image.shape[1]>image.shape[0]:
+      wk = self.opmusic.w*image.shape[0]/self.opmusic.h
+      wi = int(0.50*(image.shape[1]-wk))
+      return image[:,wi:-wi]
+    else:
+      return image
 
 # Single-user mode
 # =====================================
@@ -141,6 +144,9 @@ class start:
 
     while True:
       _, opframe = self.opvideo.read()
+
+      opframe = self.rescale(opframe)
+
       opframe = cv2.flip(opframe,1)
       imframe = cv2.cvtColor(opframe,cv2.COLOR_BGR2RGB)
 
@@ -154,7 +160,8 @@ class start:
         for mi, immarks in enumerate(imhands.multi_hand_landmarks):
           imlabel = imhands.multi_handedness[mi].classification[0].label
 
-          pxmusic = self.posndraw(immusic,imframe,immarks,imlabel)
+          pxmusic = self.posndraw(immusic,immarks,imlabel)
+          _       = self.posndraw(opframe,immarks,imlabel)
 
           if (mode=='single' and imlabel=='Left') or (mode=='party'):
             bhmidif, bhmidiv = self.getmex(pxmusic,vlims,flims)
@@ -182,7 +189,7 @@ class start:
 
       cv2.imshow('imframe',opframe)
       cv2.imshow('immusic',immusic)
-     
+      
       if cv2.waitKey(1) & 0xFF == ord('q'): break
 
     self.opvideo.release()
