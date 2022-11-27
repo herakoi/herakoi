@@ -4,6 +4,9 @@ import re
 import cv2
 import mediapipe as mp
 
+import tkinter
+import tkinter.filedialog as filedialog
+
 import mido
 import rtmidi
 
@@ -12,6 +15,7 @@ import sys
 
 vlims_ = (40,127) 
 flims_ = (48, 95) # C2-B5
+
 
 # Convert BGR image into HSV
 # -------------------------------------
@@ -47,8 +51,16 @@ class start:
   
   # Run-time checks
   # -------------------------------------
+  # if len(sys.argv)<2:
+  #   raise IOError('Image path is missing')
+  # else: imgpath = sys.argv[1]
+  
     if len(sys.argv)<2:
-      raise IOError('Image path is missing')
+      tkinter.Tk().withdraw()
+      imgpath = filedialog.askopenfilenames()
+      imgpath = imgpath[0]
+    else:
+      imgpath = sys.argv[1]
 
     if mode=='party':
       raise NotImplementedError('"party mode" not yet implemented')
@@ -67,7 +79,7 @@ class start:
   # Start capture from webcam
   # -------------------------------------
     self.opvideo = cv2.VideoCapture(video)
-    self.opmusic = gethsv(sys.argv[1])
+    self.opmusic = gethsv(imgpath)
 
     self.mphands = mp.solutions.hands
     self.mpdraws = mp.solutions.drawing_utils
