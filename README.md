@@ -29,10 +29,9 @@ pip install mediapipe-silicon
 
 ## Usage
 
-1. download the `init.py` file from this GitHub repository
-2. run `python init.py path_to_your_favorite_image`
-3. open your favorite MIDI virtual keyboard
-4. have fun!
+1. run `herakoi path_to_your_favorite_image`
+2. open your favorite MIDI virtual keyboard
+3. have fun!
 
 
 ## FAQs
