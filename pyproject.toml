@@ -27,3 +27,6 @@ dependencies = ["mido>=1.2","python-rtmidi>=1.4","opencv-python>=4.6","numpy>=1.
 [project.urls]
 "Homepage" = "https://github.com/lucadimascolo/herakoi"
 "Bug Tracker" = "https://github.com/lucadimascolo/herakoi/issues"
+
+[project.scripts]
+herakoi = "herakoi:basic"
