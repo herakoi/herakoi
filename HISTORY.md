@@ -1,3 +1,6 @@
+## unpublished
+* Introduction of alternative for selecting an image via the system default file browser (implemented using `tkinter`)
+
 ## v0.1.2
 * Updated documentation
 
