@@ -1,4 +1,5 @@
 ## unpublished
+* Correction of a minor bug in the `rescale` function, that was using the webcame frame as reference instead of the sonified image
 * Introduction of alternative for selecting an image via the system default file browser (implemented using `tkinter`)
 
 ## v0.1.2
