@@ -1,4 +1,4 @@
-[build-system]
+  [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
@@ -7,7 +7,7 @@ known_third_party = ["mediapipe","mediapipe-silicon"]
 
 [project]
 name = "herakoi"
-version = "0.1.2"
+version = "0.1.3"
 authors = [
   { name="Michele Ginolfi", email="micheleginolfi@gmail.com" },
   { name="Luca Di Mascolo", email="lucadimascolo@gmail.com" },
