@@ -20,9 +20,8 @@ flims_ = (48, 95) # C2-B5
 # Convert BGR image into HSV
 # -------------------------------------
 class gethsv:
-  def __init__(self,inp,ref):
+  def __init__(self,inp):
     self.bgr = cv2.imread(inp)
-
     self.hsv = cv2.cvtColor(self.bgr,cv2.COLOR_BGR2HSV)
 
     self.h, self.w, _ = self.bgr.shape
@@ -80,7 +79,7 @@ class start:
   # Start capture from webcam
   # -------------------------------------
     self.opvideo = cv2.VideoCapture(video)
-    self.opmusic = gethsv(imgpath,self.opvideo.read()[1])
+    self.opmusic = gethsv(imgpath)
 
     self.mphands = mp.solutions.hands
     self.mpdraws = mp.solutions.drawing_utils
@@ -134,14 +133,20 @@ class start:
 # Rescale image according to input
 # =====================================
   def rescale(self,image):
-    if self.opmusic.w<self.opmusic.h:
-      wk = (self.opmusic.w/self.opmusic.h)*image.shape[0]
-      wi = int(0.50*(image.shape[1]-wk))
-      return image[:,wi:-wi]
+    if image.shape[1]>image.shape[0]:
+      if (self.opmusic.w<self.opmusic.h) or \
+         (self.opmusic.h/self.opmusic.w)>(image.shape[0]/image.shape[1]):
+        wk = (self.opmusic.w/self.opmusic.h)*image.shape[0]
+        wi = int(0.50*(image.shape[1]-wk))     
+        print(self.opmusic.h,self.opmusic.w,image.shape,wk,wi)
+        return image[:,wi:-wi]
+      else: 
+        hk = (self.opmusic.h/self.opmusic.w)*image.shape[1]
+        hi = int(0.50*(image.shape[0]-hk))
+        print(self.opmusic.h,self.opmusic.w,image.shape,hk,hi)
+        return image[hi:-hi,:]
     else:
-      hk = (self.opmusic.h/self.opmusic.w)*image.shape[1]
-      hi = int(0.50*(image.shape[0]-hk))
-      return image[hi:-hi,:]
+      return image
 
 # Single-user mode
 # =====================================
