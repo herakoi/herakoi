@@ -81,6 +81,9 @@ class start:
     self.opvideo = cv2.VideoCapture(video)
     self.opmusic = gethsv(imgpath)
 
+    cv2.namedWindow('imframe',cv2.WINDOW_NORMAL)
+    cv2.moveWindow('imframe',800,0)
+    
     self.mphands = mp.solutions.hands
     self.mpdraws = mp.solutions.drawing_utils
     self.mpstyle = mp.solutions.drawing_styles
