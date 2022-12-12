@@ -1,3 +1,5 @@
+import argparse
+
 import numpy as np
 import re
 
@@ -16,6 +18,10 @@ import sys
 vlims_ = (40,127) 
 flims_ = (48, 95) # C2-B5
 
+root = tkinter.Tk()
+scrw = root.winfo_screenwidth()
+scrh = root.winfo_screenheight()
+root.withdraw()
 
 # Convert BGR image into HSV
 # -------------------------------------
@@ -47,17 +53,14 @@ def nametopitch(name):
 # Build the herakoi player
 # =====================================
 class start:
-  def __init__(self,mode='single',port={},video=0,box=2,**kwargs):
+  def __init__(self,image=None,mode='single',port={},video=0,box=2,**kwargs):
   
-  # Run-time checks
-  # -------------------------------------
-  # if len(sys.argv)<2:
-  #   raise IOError('Image path is missing')
-  # else: imgpath = sys.argv[1]
-  
-    if len(sys.argv)<2:
+    if image is None:
       tkinter.Tk().withdraw()
       imgpath = filedialog.askopenfilenames()
+        
+      if len(imgpath)<1: sys.exit(1)
+
       imgpath = imgpath[0]
     else:
       imgpath = sys.argv[1]
@@ -82,8 +85,7 @@ class start:
     self.opmusic = gethsv(imgpath)
 
     cv2.namedWindow('imframe',cv2.WINDOW_NORMAL)
-    cv2.moveWindow('imframe',800,0)
-    
+
     self.mphands = mp.solutions.hands
     self.mpdraws = mp.solutions.drawing_utils
     self.mpstyle = mp.solutions.drawing_styles
@@ -101,8 +103,6 @@ class start:
     if 'notes' in kwargs:
       flims = (nametopitch(kwargs['notes'][0]),
                nametopitch(kwargs['notes'][1]))
-
-      print(flims)
     else: flims = flims_
 
     self.run(mode,vlims=vlims,flims=flims,**kwargs)
@@ -141,12 +141,10 @@ class start:
          (self.opmusic.h/self.opmusic.w)>(image.shape[0]/image.shape[1]):
         wk = (self.opmusic.w/self.opmusic.h)*image.shape[0]
         wi = int(0.50*(image.shape[1]-wk))     
-        print(self.opmusic.h,self.opmusic.w,image.shape,wk,wi)
         return image[:,wi:-wi]
       else: 
         hk = (self.opmusic.h/self.opmusic.w)*image.shape[1]
         hi = int(0.50*(image.shape[0]-hk))
-        print(self.opmusic.h,self.opmusic.w,image.shape,hk,hi)
         return image[hi:-hi,:]
     else:
       return image
@@ -213,6 +211,10 @@ class start:
       cv2.imshow('imframe',opframe)
       cv2.imshow('immusic',immusic)
       
+      imgw = cv2.getWindowImageRect('imframe')[2]
+
+      cv2.moveWindow('imframe',scrw-imgw,0)
+
       if cv2.waitKey(1) & 0xFF == ord('q'): break
 
     self.opvideo.release()

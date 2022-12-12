@@ -33,6 +33,9 @@ pip install mediapipe-silicon
 2. open your favorite MIDI virtual keyboard
 3. have fun!
 
+You can customize your `herakoi` by using the following flags:
+* `--notes XX YY`, that will allow the pitch to span the range from the note XX and YY (with XX equal to, e.g., C4 for middle C)
+* `--volume ZZ`, that will set lower threshold for the note volume (in percentage)
 
 ## FAQs
 

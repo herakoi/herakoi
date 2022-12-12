@@ -1,6 +1,8 @@
-## unpublished
+## v0.1.3
+* Update of the `herakoi` access point to allow for `--notes` and `--volume` keywords
+* Addition of size check to switch the rescaling dimension in the case the aspect ratio of a horizontal image is larger than the webcam frame
 * Correction of a minor bug in the `rescale` function, that was using the webcame frame as reference instead of the sonified image
-* Introduction of alternative for selecting an image via the system default file browser (implemented using `tkinter`)
+* Introduction of an alternative for selecting an image via the system default file browser (implemented using `tkinter`)
 
 ## v0.1.2
 * Updated documentation
