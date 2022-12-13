@@ -28,7 +28,9 @@ root.withdraw()
 class gethsv:
   def __init__(self,inp):
     self.bgr = cv2.imread(inp)
+    
     self.hsv = cv2.cvtColor(self.bgr,cv2.COLOR_BGR2HSV)
+    self.hsv[self.hsv[...,0]>150.00,0] = 0.00
 
     self.h, self.w, _ = self.bgr.shape
 

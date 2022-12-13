@@ -1,3 +1,7 @@
+## unpublished
+* HSV clipping to limit issue with cyclic color map
+* Fix of bug on `--volume` input conversion
+
 ## v0.1.3
 * Update of the `herakoi` access point to allow for `--notes` and `--volume` keywords
 * Addition of size check to switch the rescaling dimension in the case the aspect ratio of a horizontal image is larger than the webcam frame
