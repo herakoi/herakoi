@@ -1,4 +1,7 @@
-## unpublished
+## v0.1.5
+* Added mapping switch 
+
+## v0.1.4
 * HSV clipping to limit issue with cyclic color map
 * Fix of bug on `--volume` input conversion
 

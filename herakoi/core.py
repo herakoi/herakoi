@@ -50,13 +50,15 @@ def nametopitch(name):
     except:
       raise ValueError('Improper note format: {}'.format(name))
 
-    return 12*(octave + 1) + pitch_map[pitch] + offset
+    return 12*(octave+1)+pitch_map[pitch]+offset
 
 # Build the herakoi player
 # =====================================
 class start:
-  def __init__(self,image=None,mode='single',port={},video=0,box=2,**kwargs):
+  def __init__(self,image=None,mode='single',port={},video=0,box=2,switch=False,**kwargs):
   
+    self.switch = switch
+
     if image is None:
       tkinter.Tk().withdraw()
       imgpath = filedialog.askopenfilenames()
@@ -119,8 +121,14 @@ class start:
       vmidi = int(np.interp(vmidi,(img.min(),img.max()),clip))
       return vmidi
 
-    return getval(self.opmusic.hsv[...,0],flims), \
-           getval(self.opmusic.hsv[...,2],vlims)
+    if self.switch:
+      fout = getval(self.opmusic.hsv[...,2],flims)
+      vout = getval(self.opmusic.hsv[...,0],vlims)
+    else:
+      fout = getval(self.opmusic.hsv[...,0],flims)
+      vout = getval(self.opmusic.hsv[...,2],vlims)
+
+    return fout, vout
 
 # Draw and return hand markers position
 # =====================================
@@ -154,7 +162,7 @@ class start:
 # Single-user mode
 # =====================================
   def run(self,mode='single',vlims=vlims_,flims=flims_,**kwargs):
-    ophands = self.mphands.Hands(max_num_hands=2)
+    ophands = self.mphands.Hands(max_num_hands=1)
 
     onmusic = False
 

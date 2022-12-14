@@ -11,7 +11,8 @@ def basic():
   pars.add_argument('--volume',
                     help='Change the low volume threshold (in percentage)',
                     nargs=1,default=['20'],metavar=('volume',))
+  pars.add_argument('--switch',action='store_true')
 
   args = pars.parse_args()
 
-  start(image=args.image,mode='single',notes=(args.notes[0],args.notes[1]),volume=float(args.volume[0]))
+  start(image=args.image,mode='single',notes=(args.notes[0],args.notes[1]),volume=float(args.volume[0]),switch=args.switch)
