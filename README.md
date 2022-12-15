@@ -30,7 +30,7 @@ pip install mediapipe-silicon
 ## Usage
 
 1. run `herakoi path_to_your_favorite_image`
-2. open your favorite MIDI virtual keyboard
+2. open your favorite MIDI player (e.g., if you run `herakoi` on an Apple computer, GarageBang is a good option) 
 3. have fun!
 
 You can customize your `herakoi` by using the following flags:
