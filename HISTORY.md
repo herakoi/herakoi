@@ -1,3 +1,11 @@
+## unpublished
+* New `--box` command line keyword to control sonification box size (if not adaptive)
+* Introduction of mode for adaptively updating the sonification box size according to the pinch size
+* Removed the `switch` mode and introduction of automatic check for monochromatic images, with pitch and loudness bound to pixel brightness
+* Introduction of `mode` control from command line (with `--mode [single/adaptive/scan/party]`)
+* New `adaptive` mode to control the size of the sonification box with the pinch 
+* Introduction of `scan` mode to use right/left hand to control the x/y coordinate of the sonified box
+
 ## v0.1.5
 * Added mapping switch 
 

@@ -10,9 +10,15 @@ def basic():
                     nargs=2,default=['C1','B8'],metavar=('low','high'))
   pars.add_argument('--volume',
                     help='Change the low volume threshold (in percentage)',
-                    nargs=1,default=['20'],metavar=('volume',))
-  pars.add_argument('--switch',action='store_true')
+                    default=20,metavar=('volume'),type=float)
+  pars.add_argument('--mode',
+                    help='Select herakoi mode [single/adaptive/scan]',
+                    default='single',metavar=('mode'))
+
+  pars.add_argument('--box',
+                    help='sonification box size in units of frame percentage',
+                    default=2,metavar=('box'),type=float)
 
   args = pars.parse_args()
 
-  start(image=args.image,mode='single',notes=(args.notes[0],args.notes[1]),volume=float(args.volume[0]),switch=args.switch)
+  start(image=args.image,mode=args.mode,notes=(args.notes[0],args.notes[1]),volume=args.volume,box=args.box)

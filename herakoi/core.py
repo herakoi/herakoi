@@ -28,9 +28,15 @@ root.withdraw()
 class gethsv:
   def __init__(self,inp):
     self.bgr = cv2.imread(inp)
-    
     self.hsv = cv2.cvtColor(self.bgr,cv2.COLOR_BGR2HSV)
-    self.hsv[self.hsv[...,0]>150.00,0] = 0.00
+    
+    self.mono = np.logical_and((self.bgr[...,0]==self.bgr[...,1]).all(),
+                               (self.bgr[...,1]==self.bgr[...,2]).all())
+
+    if self.mono:
+      self.hsv[...,0] = self.hsv[...,2].copy()
+    else:
+      self.hsv[self.hsv[...,0]>150.00,0] = 0.00
 
     self.h, self.w, _ = self.bgr.shape
 
@@ -48,17 +54,15 @@ def nametopitch(name):
       offset = accen_map[match.group('off')]
       octave = int(match.group('oct'))
     except:
-      raise ValueError('Improper note format: {}'.format(name))
+      raise ValueError('Improper note format: {0}'.format(name))
 
     return 12*(octave+1)+pitch_map[pitch]+offset
 
 # Build the herakoi player
 # =====================================
 class start:
-  def __init__(self,image=None,mode='single',port={},video=0,box=2,switch=False,**kwargs):
+  def __init__(self,image=None,mode='single',port={},video=0,box=2,**kwargs):
   
-    self.switch = switch
-
     if image is None:
       tkinter.Tk().withdraw()
       imgpath = filedialog.askopenfilenames()
@@ -69,7 +73,9 @@ class start:
     else:
       imgpath = sys.argv[1]
 
-    if mode=='party':
+    if mode not in ['single','adaptive','scan','party']:
+      raise NotImplementedError('"{0}" mode is unknown'.format(mode))
+    elif mode=='party':
       raise NotImplementedError('"party mode" not yet implemented')
 
     self.valname = 'herakoi'
@@ -95,8 +101,14 @@ class start:
     self.mpstyle = mp.solutions.drawing_styles
 
     self.opindex = 8
-    self.oppatch = np.minimum(self.opmusic.w,self.opmusic.h)
-    self.oppatch = int(np.clip((box/100)*self.oppatch,2,None))
+    self.opthumb = 4
+    
+    if mode=='adaptive':
+      self.oppatch = None
+    else:
+      self.oppatch = np.minimum(self.opmusic.w,self.opmusic.h)
+      self.oppatch = int(np.clip((box/100)*self.oppatch,2,None))
+    
     self.opcolor = {'Left': (0,255,  0), 
                    'Right': (0,255,255)}
 
@@ -111,35 +123,32 @@ class start:
 
     self.run(mode,vlims=vlims,flims=flims,**kwargs)
 
-# Convert H and B to note and volume
+# Convert H and B to note and loudness
 # =====================================
-  def getmex(self,posx,vlims=vlims_,flims=flims_):
+  def getmex(self,posx,box,vlims=vlims_,flims=flims_):
     def getval(img,clip):
-      val = np.median(img[np.clip(posx[1]-self.oppatch//2,0,self.opmusic.h-1):np.clip(posx[1]+self.oppatch//2,0,self.opmusic.h-1),
-                          np.clip(posx[0]-self.oppatch//2,0,self.opmusic.w-1):np.clip(posx[0]+self.oppatch//2,0,self.opmusic.w-1)])
+      val = np.median(img[np.clip(posx[1]-box[1]//2,0,self.opmusic.h-1):np.clip(posx[1]+box[1]//2,0,self.opmusic.h-1),
+                          np.clip(posx[0]-box[0]//2,0,self.opmusic.w-1):np.clip(posx[0]+box[0]//2,0,self.opmusic.w-1)])
       vmidi = 0 if np.isnan(val) else val
       vmidi = int(np.interp(vmidi,(img.min(),img.max()),clip))
       return vmidi
 
-    if self.switch:
-      fout = getval(self.opmusic.hsv[...,2],flims)
-      vout = getval(self.opmusic.hsv[...,0],vlims)
-    else:
-      fout = getval(self.opmusic.hsv[...,0],flims)
-      vout = getval(self.opmusic.hsv[...,2],vlims)
+    fout = getval(self.opmusic.hsv[...,0],flims)
+    vout = getval(self.opmusic.hsv[...,2],vlims)
 
     return fout, vout
 
 # Draw and return hand markers position
 # =====================================
-  def posndraw(self,frame,marks,label):
-    self.mpdraws.draw_landmarks(frame,marks,self.mphands.HAND_CONNECTIONS,None)
+  def posndraw(self,frame,marks,label,draw=True):
+    if draw: self.mpdraws.draw_landmarks(frame,marks,self.mphands.HAND_CONNECTIONS,None)
 
     point = marks.landmark[self.opindex]
     posix = [int(point.x*frame.shape[1]),
              int(point.y*frame.shape[0]),np.abs(point.z)*300]
 
-    cv2.circle(frame,(posix[0],posix[1]),np.clip(int(posix[2]),2,None),self.opcolor[label],-1)
+    if draw and self.oppatch is not None: 
+      cv2.circle(frame,(posix[0],posix[1]),np.clip(int(posix[2]),2,None),self.opcolor[label],-1)
 
     return posix
 
@@ -162,7 +171,7 @@ class start:
 # Single-user mode
 # =====================================
   def run(self,mode='single',vlims=vlims_,flims=flims_,**kwargs):
-    ophands = self.mphands.Hands(max_num_hands=1)
+    ophands = self.mphands.Hands(max_num_hands=2 if mode=='scan' else 1)
 
     onmusic = False
 
@@ -188,22 +197,56 @@ class start:
       bhmidiv = None
 
       if imhands.multi_hand_landmarks:
-        for mi, immarks in enumerate(imhands.multi_hand_landmarks):
-          imlabel = imhands.multi_handedness[mi].classification[0].label
+        if mode=='scan':
+          pxmusic = [0,0,50]
+          for mi, immarks in enumerate(imhands.multi_hand_landmarks):
+            imlabel = imhands.multi_handedness[mi].classification[0].label
+            
+            self.mpdraws.draw_landmarks(immusic,immarks,self.mphands.HAND_CONNECTIONS,None)
+            self.mpdraws.draw_landmarks(opframe,immarks,self.mphands.HAND_CONNECTIONS,None)
 
-          pxmusic = self.posndraw(immusic,immarks,imlabel)
-          _       = self.posndraw(opframe,immarks,imlabel)
+            px, py, _ = self.posndraw(immusic,immarks,imlabel,False)
 
-          if (mode=='single' and imlabel=='Left') or (mode=='party'):
-            bhmidif, bhmidiv = self.getmex(pxmusic,vlims,flims)
-          
-          if (mode=='single' and imlabel=='Right'):
-            rhmidif, rhmidiv = self.getmex(pxmusic,vlims,flims)
+            if imlabel=='Right': pxmusic[0] = px
+            if imlabel=='Left':  pxmusic[1] = py
 
-            bhmidif = rhmidif if bhmidif is None else int(0.50*(rhmidif+bhmidif))
-            bhmidiv = rhmidiv if bhmidiv is None else int(0.50*(rhmidiv+bhmidiv))
+          cv2.circle(immusic,(pxmusic[0],pxmusic[1]),pxmusic[2],(255,255,255),-1)
 
-        if mode=='single':
+        else:
+          for mi, immarks in enumerate(imhands.multi_hand_landmarks):
+            imlabel = imhands.multi_handedness[mi].classification[0].label
+
+            _       = self.posndraw(opframe,immarks,imlabel,True)
+
+            if self.oppatch is None:
+              pxindex = immarks.landmark[self.opindex]
+              pxthumb = immarks.landmark[self.opthumb]
+              pxpatch = [int(np.abs(pxindex.x-pxthumb.x)*immusic.shape[1]),
+                         int(np.abs(pxindex.y-pxthumb.y)*immusic.shape[0])]
+
+              _ = self.posndraw(immusic,immarks,imlabel,True)
+              pxmusic = [0.50*(pxindex.x+pxthumb.x),0.50*(pxindex.y+pxthumb.y),0.50*(pxindex.z+pxthumb.z)]
+              pxmusic = [int(pxmusic[0]*immusic.shape[1]),
+                         int(pxmusic[1]*immusic.shape[0]),int(pxmusic[2]*300)]
+
+              cv2.rectangle(immusic,(int(pxthumb.x*immusic.shape[1]),int(pxthumb.y*immusic.shape[0])),
+                                    (int(pxindex.x*immusic.shape[1]),int(pxindex.y*immusic.shape[0])),self.opcolor[imlabel],1)
+              cv2.circle(immusic,(pxmusic[0],pxmusic[1]),2,self.opcolor[imlabel],-1)
+ 
+            else:
+              pxmusic = self.posndraw(immusic,immarks,imlabel,True)
+              pxpatch = [self.oppatch,self.oppatch]
+
+            if (mode in ['single','adaptive'] and imlabel=='Left') or (mode=='party'):
+              bhmidif, bhmidiv = self.getmex(pxmusic,pxpatch,vlims,flims)
+            
+            if (mode in ['single','adaptive'] and imlabel=='Right'):
+              rhmidif, rhmidiv = self.getmex(pxmusic,pxpatch,vlims,flims)
+
+              bhmidif = rhmidif if bhmidif is None else int(0.50*(rhmidif+bhmidif))
+              bhmidiv = rhmidiv if bhmidiv is None else int(0.50*(rhmidiv+bhmidiv))
+
+        if mode in ['single','adaptive']:
           if (bhmidif is not None) and (bhmidiv is not None):
             if time.time()-tictime>toctime and not onmusic:
               self.midiout.send(mido.Message('note_on',channel=8,note=bhmidif,velocity=bhmidiv))
