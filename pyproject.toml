@@ -7,7 +7,7 @@ known_third_party = ["mediapipe","mediapipe-silicon"]
 
 [project]
 name = "herakoi"
-version = "0.1.5"
+version = "0.1.7"
 authors = [
   { name="Michele Ginolfi", email="micheleginolfi@gmail.com" },
   { name="Luca Di Mascolo", email="lucadimascolo@gmail.com" },
@@ -22,7 +22,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Operating System :: OS Independent",
 ]
-dependencies = ["mido>=1.2","python-rtmidi>=1.4","opencv-python>=4.6","numpy>=1.23"]
+dependencies = ["mido>=1.2","python-rtmidi>=1.4","opencv-python>=4.6","numpy>=1.23","pynput>=1.7"]
 
 [project.urls]
 "Homepage" = "https://github.com/lucadimascolo/herakoi"

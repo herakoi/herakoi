@@ -1,4 +1,6 @@
 ## v0.1.7
+* Added support to image gallery and scroll with left/right keys
+* Added the possibility to go through modes using the up/down keys
 * Reintroduced `switch` mode to swap the hue/brightness mapping
 
 ## v0.1.6

@@ -9,6 +9,9 @@ import mediapipe as mp
 import tkinter
 import tkinter.filedialog as filedialog
 
+from pynput import keyboard
+from pynput.keyboard import Key
+
 import mido
 import rtmidi
 
@@ -22,6 +25,8 @@ root = tkinter.Tk()
 scrw = root.winfo_screenwidth()
 scrh = root.winfo_screenheight()
 root.withdraw()
+
+global pressed; pressed = None
 
 # Convert BGR image into HSV
 # -------------------------------------
@@ -58,28 +63,46 @@ def nametopitch(name):
 
     return 12*(octave+1)+pitch_map[pitch]+offset
 
+# Keyboard press
+# -------------------------------------
+def on_press(key):
+  global pressed
+  print(key)
+  if key == Key.right: pressed = 'right'
+  if key == Key.left:  pressed = 'left'
+  if key == Key.up:    pressed = 'up'
+  if key == Key.down:  pressed = 'down'
+
 # Build the herakoi player
 # =====================================
 class start:
   def __init__(self,image=None,mode='single',port={},video=0,box=2,switch=True,**kwargs):
     
+    global pressed
+
+    self.listener = keyboard.Listener(on_press=on_press)
+    self.listener.start()  
+
     self.switch = switch
-    print(switch,self.switch)
 
     if image is None:
       tkinter.Tk().withdraw()
       imgpath = filedialog.askopenfilenames()
         
       if len(imgpath)<1: sys.exit(1)
+    else: imgpath = image
 
-      imgpath = imgpath[0]
-    else:
-      imgpath = sys.argv[1]
+    if isinstance(imgpath,str): imgpath = [imgpath]
 
-    if mode not in ['single','adaptive','scan','party']:
+    imginit = 0
+
+    modlist = ['single','adaptive','scan']
+    if mode not in modlist:
       raise NotImplementedError('"{0}" mode is unknown'.format(mode))
     elif mode=='party':
       raise NotImplementedError('"party mode" not yet implemented')
+
+    modinit = modlist.index(mode)
 
     self.valname = 'herakoi'
 
@@ -94,37 +117,55 @@ class start:
 
   # Start capture from webcam
   # -------------------------------------
-    self.opvideo = cv2.VideoCapture(video)
-    self.opmusic = gethsv(imgpath)
+    while True:
+      self.opvideo = cv2.VideoCapture(video)
+      self.opmusic = gethsv(imgpath[imginit])
 
-    cv2.namedWindow('imframe',cv2.WINDOW_NORMAL)
+      cv2.namedWindow('imframe',cv2.WINDOW_NORMAL)
 
-    self.mphands = mp.solutions.hands
-    self.mpdraws = mp.solutions.drawing_utils
-    self.mpstyle = mp.solutions.drawing_styles
+      self.mphands = mp.solutions.hands
+      self.mpdraws = mp.solutions.drawing_utils
+      self.mpstyle = mp.solutions.drawing_styles
 
-    self.opindex = 8
-    self.opthumb = 4
-    
-    if mode=='adaptive':
-      self.oppatch = None
-    else:
-      self.oppatch = np.minimum(self.opmusic.w,self.opmusic.h)
-      self.oppatch = int(np.clip((box/100)*self.oppatch,2,None))
-    
-    self.opcolor = {'Left': (0,255,  0), 
-                   'Right': (0,255,255)}
+      self.opindex = 8
+      self.opthumb = 4
+      
+      if mode=='adaptive':
+        self.oppatch = None
+      else:
+        self.oppatch = np.minimum(self.opmusic.w,self.opmusic.h)
+        self.oppatch = int(np.clip((box/100)*self.oppatch,2,None))
+      
+      self.opcolor = {'Left': (0,255,  0), 
+                     'Right': (0,255,255)}
 
-    if 'volume' in kwargs:
-      vlims = (np.interp(kwargs['volume'],(0,100),(0,127)),127)
-    else: vlims = vlims_
+      if 'volume' in kwargs:
+        vlims = (np.interp(kwargs['volume'],(0,100),(0,127)),127)
+      else: vlims = vlims_
 
-    if 'notes' in kwargs:
-      flims = (nametopitch(kwargs['notes'][0]),
-               nametopitch(kwargs['notes'][1]))
-    else: flims = flims_
+      if 'notes' in kwargs:
+        flims = (nametopitch(kwargs['notes'][0]),
+                 nametopitch(kwargs['notes'][1]))
+      else: flims = flims_
 
-    self.run(mode,vlims=vlims,flims=flims,**kwargs)
+      self.run(mode,vlims=vlims,flims=flims,**kwargs)
+
+      if  pressed=='right':
+        imginit = imginit+1 if imginit<(len(imgpath)-1) else 0
+      elif pressed=='left':
+        imginit = imginit-1 if imginit>0 else len(imgpath)-1
+
+      if pressed in ['up','down']:
+        if pressed=='up':
+          modinit = modinit+1 if modinit<(len(modlist)-1) else 0
+        elif pressed=='down':
+          modinit = modinit-1 if modinit>0 else len(modlist)-1
+
+        mode = modlist[modinit]
+        print('changin mode to "{0}"'.format(mode),modinit)
+
+      pressed = None
+
 
 # Convert H and B to note and loudness
 # =====================================
@@ -275,7 +316,7 @@ class start:
 
       cv2.moveWindow('imframe',scrw-imgw,0)
 
-      if cv2.waitKey(1) & 0xFF == ord('q'): break
+      if (cv2.waitKey(1) & 0xFF == ord('q')) or (pressed is not None): break
 
     self.opvideo.release()
     cv2.destroyAllWindows()

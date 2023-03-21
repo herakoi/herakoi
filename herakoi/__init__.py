@@ -20,6 +20,4 @@ def basic():
   pars.add_argument('--switch',action='store_true')
   args = pars.parse_args()
 
-  print(args.switch)
-
   start(image=args.image,mode=args.mode,notes=(args.notes[0],args.notes[1]),volume=args.volume,box=args.box,switch=args.switch)
