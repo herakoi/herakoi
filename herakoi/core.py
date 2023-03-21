@@ -24,6 +24,7 @@ flims_ = (48, 95) # C2-B5
 root = tkinter.Tk()
 scrw = root.winfo_screenwidth()
 scrh = root.winfo_screenheight()
+fill = 1.00
 root.withdraw()
 
 global pressed; pressed = None
@@ -33,6 +34,9 @@ global pressed; pressed = None
 class gethsv:
   def __init__(self,inp):
     self.bgr = cv2.imread(inp)
+
+    self.h, self.w, _ = self.bgr.shape
+
     self.hsv = cv2.cvtColor(self.bgr,cv2.COLOR_BGR2HSV)
     
     self.mono = np.logical_and((self.bgr[...,0]==self.bgr[...,1]).all(),
@@ -42,8 +46,6 @@ class gethsv:
       self.hsv[...,0] = self.hsv[...,2].copy()
     else:
       self.hsv[self.hsv[...,0]>150.00,0] = 0.00
-
-    self.h, self.w, _ = self.bgr.shape
 
 # Convert key name
 # Ported from the pretty-midi package
@@ -67,7 +69,6 @@ def nametopitch(name):
 # -------------------------------------
 def on_press(key):
   global pressed
-  print(key)
   if key == Key.right: pressed = 'right'
   if key == Key.left:  pressed = 'left'
   if key == Key.up:    pressed = 'up'
@@ -122,6 +123,8 @@ class start:
       self.opmusic = gethsv(imgpath[imginit])
 
       cv2.namedWindow('imframe',cv2.WINDOW_NORMAL)
+      cv2.namedWindow('immusic',cv2.WINDOW_NORMAL)
+      cv2.namedWindow('mixframe',cv2.WINDOW_NORMAL)
 
       self.mphands = mp.solutions.hands
       self.mpdraws = mp.solutions.drawing_utils
@@ -274,13 +277,15 @@ class start:
 
               _ = self.posndraw(immusic,immarks,imlabel,True)
               pxmusic = [0.50*(pxindex.x+pxthumb.x),0.50*(pxindex.y+pxthumb.y),0.50*(pxindex.z+pxthumb.z)]
+
+              for im in [immusic,opframe]:
+                cv2.rectangle(im,(int(pxthumb.x*im.shape[1]),int(pxthumb.y*im.shape[0])),
+                                 (int(pxindex.x*im.shape[1]),int(pxindex.y*im.shape[0])),self.opcolor[imlabel],1)
+                cv2.circle(im,(int(pxmusic[0]*im.shape[1]),int(pxmusic[1]*im.shape[0])),2,self.opcolor[imlabel],-1)
+ 
               pxmusic = [int(pxmusic[0]*immusic.shape[1]),
                          int(pxmusic[1]*immusic.shape[0]),int(pxmusic[2]*300)]
 
-              cv2.rectangle(immusic,(int(pxthumb.x*immusic.shape[1]),int(pxthumb.y*immusic.shape[0])),
-                                    (int(pxindex.x*immusic.shape[1]),int(pxindex.y*immusic.shape[0])),self.opcolor[imlabel],1)
-              cv2.circle(immusic,(pxmusic[0],pxmusic[1]),2,self.opcolor[imlabel],-1)
- 
             else:
               pxmusic = self.posndraw(immusic,immarks,imlabel,True)
               pxpatch = [self.oppatch,self.oppatch]
@@ -309,12 +314,31 @@ class start:
           else: self.panic()
       else: self.panic()
 
-      cv2.imshow('imframe',opframe)
-      cv2.imshow('immusic',immusic)
-      
-      imgw = cv2.getWindowImageRect('imframe')[2]
+      if False:
+        cv2.imshow('imframe',opframe)
+        cv2.imshow('immusic',immusic)
+      else:
+        opframe = cv2.resize(opframe,None,fx=immusic.shape[0]/opframe.shape[0],fy=immusic.shape[0]/opframe.shape[0])
 
-      cv2.moveWindow('imframe',scrw-imgw,0)
+        mixframe = np.zeros((max(opframe.shape[0], immusic.shape[0]), opframe.shape[1] + immusic.shape[1], 3), dtype=np.uint8)
+        mixframe[:opframe.shape[0],:opframe.shape[1],:] = opframe
+        mixframe[:immusic.shape[0],opframe.shape[1]:,:] = immusic
+
+        # Show the combined image in a window
+        cv2.imshow('mixframe',mixframe)
+
+        hm, wm, _ = mixframe.shape
+
+        if   (hm/wm)>(scrh/scrw):
+          hr = fill*scrh
+          wr = fill*scrh*wm/hm
+        elif (hm/wm)<=(scrh/scrw):
+          hr = fill*scrw*hm/wm
+          wr = fill*scrw
+
+        wr, hr = int(wr), int(hr)
+
+        cv2.resizeWindow('mixframe',wr,hr)
 
       if (cv2.waitKey(1) & 0xFF == ord('q')) or (pressed is not None): break
 
