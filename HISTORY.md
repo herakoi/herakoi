@@ -1,4 +1,7 @@
-## unpublished
+## v0.1.7
+* Reintroduced `switch` mode to swap the hue/brightness mapping
+
+## v0.1.6
 * New `--box` command line keyword to control sonification box size (if not adaptive)
 * Introduction of mode for adaptively updating the sonification box size according to the pinch size
 * Removed the `switch` mode and introduction of automatic check for monochromatic images, with pitch and loudness bound to pixel brightness

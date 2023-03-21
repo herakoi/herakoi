@@ -61,8 +61,11 @@ def nametopitch(name):
 # Build the herakoi player
 # =====================================
 class start:
-  def __init__(self,image=None,mode='single',port={},video=0,box=2,**kwargs):
-  
+  def __init__(self,image=None,mode='single',port={},video=0,box=2,switch=True,**kwargs):
+    
+    self.switch = switch
+    print(switch,self.switch)
+
     if image is None:
       tkinter.Tk().withdraw()
       imgpath = filedialog.askopenfilenames()
@@ -133,8 +136,12 @@ class start:
       vmidi = int(np.interp(vmidi,(img.min(),img.max()),clip))
       return vmidi
 
-    fout = getval(self.opmusic.hsv[...,0],flims)
-    vout = getval(self.opmusic.hsv[...,2],vlims)
+    if self.switch:
+      fout = getval(self.opmusic.hsv[...,2],flims)
+      vout = getval(self.opmusic.hsv[...,0],vlims)
+    else:
+      fout = getval(self.opmusic.hsv[...,0],flims)
+      vout = getval(self.opmusic.hsv[...,2],vlims)
 
     return fout, vout
 

@@ -14,11 +14,12 @@ def basic():
   pars.add_argument('--mode',
                     help='Select herakoi mode [single/adaptive/scan]',
                     default='single',metavar=('mode'))
-
   pars.add_argument('--box',
                     help='sonification box size in units of frame percentage',
                     default=2,metavar=('box'),type=float)
-
+  pars.add_argument('--switch',action='store_true')
   args = pars.parse_args()
 
-  start(image=args.image,mode=args.mode,notes=(args.notes[0],args.notes[1]),volume=args.volume,box=args.box)
+  print(args.switch)
+
+  start(image=args.image,mode=args.mode,notes=(args.notes[0],args.notes[1]),volume=args.volume,box=args.box,switch=args.switch)
