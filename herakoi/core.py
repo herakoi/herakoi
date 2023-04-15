@@ -101,7 +101,7 @@ class start:
     if mode not in modlist:
       raise NotImplementedError('"{0}" mode is unknown'.format(mode))
     elif mode=='party':
-      raise NotImplementedError('"party mode" not yet implemented')
+      raise NotImplementedError('"party mode" not implemented yet')
 
     modinit = modlist.index(mode)
 
