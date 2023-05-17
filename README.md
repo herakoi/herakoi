@@ -16,16 +16,7 @@ Fully written in python, `herakoi` requires relatively little computational powe
 ```bash
 pip install herakoi
 ```
-This will install `herakoi` as well as all the necessary dependencies. Before firing up `herakoi`, you however have to install an additional package, [`mediapipe`](https://google.github.io/mediapipe/). In general, you should be able to do so via
-
-```bash
-pip install mediapipe
-```
-If your computer is instead equipped with an Apple Silicon chip, you should use
-
-```
-pip install mediapipe-silicon
-```
+This will install `herakoi` as well as all the dependencies required to fire it up.
 
 ## Usage
 

@@ -1,3 +1,6 @@
+## v0.1.7b
+* Automatic switch to mediapipe/mediapipe-silicon
+
 ## v0.1.7
 * Merged images into a mixed frame
 * Added support to image gallery and scroll with left/right keys
