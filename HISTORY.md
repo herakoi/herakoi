@@ -1,5 +1,6 @@
 ## v0.2.0
 * First official release
+* Video capture keyword
 
 ## v0.1.7b
 * Automatic switch to mediapipe/mediapipe-silicon
