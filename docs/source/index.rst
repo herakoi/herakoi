@@ -29,7 +29,7 @@ Using this guide
    issues.rst
    changelog.rst
 
-License & Attribution
+License & attribution
 ---------------------
 Copyright 2022 Michele Ginolfi, Luca Di Mascolo, and contributors.
 
