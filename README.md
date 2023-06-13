@@ -1,5 +1,7 @@
 # herakoi 
 
+[![Documentation Status](https://readthedocs.org/projects/herakoi/badge/?version=latest)](https://herakoi.readthedocs.io/en/latest/?badge=latest)
+
 `herakoi` is a motion-sensing sonification experiment. 
 
 It uses a Machine Learning (ML)-based algorithm for hand recognition to track in real-time the position of your hands in the scene observed by a webcam connected to your computer. The model landmarks coordinates of your hands are then re-projected onto the pixel coordinates of your favorite image. The visual properties of the "touched" pixels (at the moment, color and saturation) are then converted into sound properties of your favorite instrument, which you can choose from your favorite virtual MIDI keyboard.
