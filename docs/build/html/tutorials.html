@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Tutorials" href="tutorials.html" /><link rel="prev" title="herakoi" href="index.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Known issues" href="issues.html" /><link rel="prev" title="Installation" href="installation.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
-        <title>Installation - herakoi v0.2.0 documentation</title>
+        <title>Tutorials - herakoi v0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -162,11 +162,11 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Installation</a></li>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Tutorials</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="issues.html">Known issues</a></li>
@@ -204,27 +204,40 @@
           </label>
         </div>
         <article role="main">
-          <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">#</a></h1>
-<div class="warning admonition">
-<p class="admonition-title">using herakoi on Windows</p>
-<p>We tested <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> only on macOS or some linux distributions. We know, however, that <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> has been successfully installed on Windows machines too, but we can not guarantee that it will work properly. If you encounter any issues with the installation or with making <cite>herakoi</cite> run, please contact us.</p>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">herakoi</span></code> runs on python 3. To check whether you have already a working python build, you can try typing <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">--version</span></code>. If you get a message like <code class="docutils literal notranslate"><span class="pre">Python</span> <span class="pre">3.XX.YY</span></code> (with <code class="docutils literal notranslate"><span class="pre">XX</span></code> and <code class="docutils literal notranslate"><span class="pre">YY</span></code> on the specific version), then you are ready to go!</p>
-<p>The stable release of <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> can be installed through <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a> simply as</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>herakoi
+          <section id="tutorials">
+<h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading">#</a></h1>
+<section id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this heading">#</a></h2>
+<p>First and foremost, <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> works by sending sound information to an external software via MIDI messages. As such, before starting a sonification session, you should open a MIDI player (for example, GarageBand) and select your favorite virtual instrument.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> was installed successfully, you should be able to run a sonification session by simply running the command <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> from the terminal. This will open a browser window from which you can select the image you would like to sonify.</p>
+<p>Alternatively, you can define the path to your image as</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>herakoi<span class="w"> </span>&lt;path-to-your-image&gt;
 </pre></div>
 </div>
-<p>This will install the main <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> library, as well as all the dependencies required to let you sonify your favorite images.</p>
-<section id="from-source">
-<h2>From source<a class="headerlink" href="#from-source" title="Permalink to this heading">#</a></h2>
-<p>If you feel adventurous, you can instead give a try to the pre-release version. Since th source files of <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> are hosted on <a class="reference external" href="https://github.com/lucadimascolo/herakoi">GitHub</a>, you can directly clone the repository and install it from there:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/lucadimascolo/herakoi.git
-<span class="nb">cd</span><span class="w"> </span>herakoi
-python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>e<span class="w"> </span>.
-</pre></div>
-</div>
-<p>Please note that, in this case, many features might still be in an experimental stage, and might not work properly. If you find any bug, though, feel free to contact us by email or by commenting on the <a class="reference external" href="https://github.com/lucadimascolo/herakoi/issues">GitHub issue tracker</a>.</p>
+<p>You should now see a new window showing the selected image as well as the video captured by the webcam. The MIDI player should automatically recognize <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> as an external MIDI instrument and be immediately able to generate sound.</p>
+</section>
+<section id="tuning-the-sonification-parameters">
+<h2>Tuning the sonification parameters<a class="headerlink" href="#tuning-the-sonification-parameters" title="Permalink to this heading">#</a></h2>
+<p>…</p>
+</section>
+<section id="opening-multiple-images">
+<h2>Opening multiple images<a class="headerlink" href="#opening-multiple-images" title="Permalink to this heading">#</a></h2>
+<p>…</p>
+</section>
+<section id="hand-tracking-modes">
+<h2>Hand-tracking modes<a class="headerlink" href="#hand-tracking-modes" title="Permalink to this heading">#</a></h2>
+<section id="mode-single">
+<h3><code class="docutils literal notranslate"><span class="pre">mode='single'</span></code><a class="headerlink" href="#mode-single" title="Permalink to this heading">#</a></h3>
+<p>…</p>
+</section>
+<section id="mode-adaptive">
+<h3><code class="docutils literal notranslate"><span class="pre">mode='adaptive'</span></code><a class="headerlink" href="#mode-adaptive" title="Permalink to this heading">#</a></h3>
+<p>…</p>
+</section>
+<section id="mode-scan">
+<h3><code class="docutils literal notranslate"><span class="pre">mode='scan'</span></code><a class="headerlink" href="#mode-scan" title="Permalink to this heading">#</a></h3>
+<p>…</p>
+</section>
 </section>
 </section>
 
@@ -233,23 +246,23 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="tutorials.html">
+          <a class="next-page" href="issues.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Tutorials</div>
+                <div class="title">Known issues</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="index.html">
+          <a class="prev-page" href="installation.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Home</div>
+                <div class="title">Installation</div>
                 
               </div>
             </a>
@@ -283,8 +296,16 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Installation</a><ul>
-<li><a class="reference internal" href="#from-source">From source</a></li>
+<li><a class="reference internal" href="#">Tutorials</a><ul>
+<li><a class="reference internal" href="#quickstart">Quickstart</a></li>
+<li><a class="reference internal" href="#tuning-the-sonification-parameters">Tuning the sonification parameters</a></li>
+<li><a class="reference internal" href="#opening-multiple-images">Opening multiple images</a></li>
+<li><a class="reference internal" href="#hand-tracking-modes">Hand-tracking modes</a><ul>
+<li><a class="reference internal" href="#mode-single"><code class="docutils literal notranslate"><span class="pre">mode='single'</span></code></a></li>
+<li><a class="reference internal" href="#mode-adaptive"><code class="docutils literal notranslate"><span class="pre">mode='adaptive'</span></code></a></li>
+<li><a class="reference internal" href="#mode-scan"><code class="docutils literal notranslate"><span class="pre">mode='scan'</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

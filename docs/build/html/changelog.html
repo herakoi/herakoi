@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Tutorials" href="tutorials.html" /><link rel="prev" title="herakoi" href="index.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
 
     <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
-        <title>Installation - herakoi v0.2.0 documentation</title>
+        <title>Changelog - herakoi v0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -162,8 +162,8 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Installation</a></li>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
@@ -204,27 +204,79 @@
           </label>
         </div>
         <article role="main">
-          <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">#</a></h1>
-<div class="warning admonition">
-<p class="admonition-title">using herakoi on Windows</p>
-<p>We tested <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> only on macOS or some linux distributions. We know, however, that <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> has been successfully installed on Windows machines too, but we can not guarantee that it will work properly. If you encounter any issues with the installation or with making <cite>herakoi</cite> run, please contact us.</p>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">herakoi</span></code> runs on python 3. To check whether you have already a working python build, you can try typing <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">--version</span></code>. If you get a message like <code class="docutils literal notranslate"><span class="pre">Python</span> <span class="pre">3.XX.YY</span></code> (with <code class="docutils literal notranslate"><span class="pre">XX</span></code> and <code class="docutils literal notranslate"><span class="pre">YY</span></code> on the specific version), then you are ready to go!</p>
-<p>The stable release of <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> can be installed through <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a> simply as</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>herakoi
-</pre></div>
-</div>
-<p>This will install the main <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> library, as well as all the dependencies required to let you sonify your favorite images.</p>
-<section id="from-source">
-<h2>From source<a class="headerlink" href="#from-source" title="Permalink to this heading">#</a></h2>
-<p>If you feel adventurous, you can instead give a try to the pre-release version. Since th source files of <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> are hosted on <a class="reference external" href="https://github.com/lucadimascolo/herakoi">GitHub</a>, you can directly clone the repository and install it from there:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/lucadimascolo/herakoi.git
-<span class="nb">cd</span><span class="w"> </span>herakoi
-python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>e<span class="w"> </span>.
-</pre></div>
-</div>
-<p>Please note that, in this case, many features might still be in an experimental stage, and might not work properly. If you find any bug, though, feel free to contact us by email or by commenting on the <a class="reference external" href="https://github.com/lucadimascolo/herakoi/issues">GitHub issue tracker</a>.</p>
+          <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h1>
+<section id="v0-2-0">
+<h2>v0.2.0<a class="headerlink" href="#v0-2-0" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>First official release</p></li>
+</ul>
+</section>
+<section id="v0-1-7b">
+<h2>v0.1.7b<a class="headerlink" href="#v0-1-7b" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Automatic switch to mediapipe/mediapipe-silicon</p></li>
+</ul>
+</section>
+<section id="v0-1-7">
+<h2>v0.1.7<a class="headerlink" href="#v0-1-7" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Merged images into a mixed frame</p></li>
+<li><p>Added support to image gallery and scroll with left/right keys</p></li>
+<li><p>Added the possibility to go through modes using the up/down keys</p></li>
+<li><p>Reintroduced <code class="docutils literal notranslate"><span class="pre">switch</span></code> mode to swap the hue/brightness mapping</p></li>
+</ul>
+</section>
+<section id="v0-1-6">
+<h2>v0.1.6<a class="headerlink" href="#v0-1-6" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>New <code class="docutils literal notranslate"><span class="pre">--box</span></code> command line keyword to control sonification box size (if not adaptive)</p></li>
+<li><p>Introduction of mode for adaptively updating the sonification box size according to the pinch size</p></li>
+<li><p>Removed the <code class="docutils literal notranslate"><span class="pre">switch</span></code> mode and introduction of automatic check for monochromatic images, with pitch and loudness bound to pixel brightness</p></li>
+<li><p>Introduction of <code class="docutils literal notranslate"><span class="pre">mode</span></code> control from command line (with <code class="docutils literal notranslate"><span class="pre">--mode</span> <span class="pre">[single/adaptive/scan/party]</span></code>)</p></li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> mode to control the size of the sonification box with the pinch</p></li>
+<li><p>Introduction of <code class="docutils literal notranslate"><span class="pre">scan</span></code> mode to use right/left hand to control the x/y coordinate of the sonified box</p></li>
+</ul>
+</section>
+<section id="v0-1-5">
+<h2>v0.1.5<a class="headerlink" href="#v0-1-5" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Added mapping switch</p></li>
+</ul>
+</section>
+<section id="v0-1-4">
+<h2>v0.1.4<a class="headerlink" href="#v0-1-4" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>HSV clipping to limit issue with cyclic color map</p></li>
+<li><p>Fix of bug on <code class="docutils literal notranslate"><span class="pre">--volume</span></code> input conversion</p></li>
+</ul>
+</section>
+<section id="v0-1-3">
+<h2>v0.1.3<a class="headerlink" href="#v0-1-3" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Update of the <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> access point to allow for <code class="docutils literal notranslate"><span class="pre">--notes</span></code> and <code class="docutils literal notranslate"><span class="pre">--volume</span></code> keywords</p></li>
+<li><p>Addition of size check to switch the rescaling dimension in the case the aspect ratio of a horizontal image is larger than the webcam frame</p></li>
+<li><p>Correction of a minor bug in the <code class="docutils literal notranslate"><span class="pre">rescale</span></code> function, that was using the webcame frame as reference instead of the sonified image</p></li>
+<li><p>Introduction of an alternative for selecting an image via the system default file browser (implemented using <code class="docutils literal notranslate"><span class="pre">tkinter</span></code>)</p></li>
+</ul>
+</section>
+<section id="v0-1-2">
+<h2>v0.1.2<a class="headerlink" href="#v0-1-2" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Updated documentation</p></li>
+</ul>
+</section>
+<section id="v0-1-1">
+<h2>v0.1.1<a class="headerlink" href="#v0-1-1" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Implementation of entry point for running <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> as CLI command</p></li>
+</ul>
+</section>
+<section id="v0-1-0">
+<h2>v0.1.0<a class="headerlink" href="#v0-1-0" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Initial release</p></li>
+</ul>
 </section>
 </section>
 
@@ -233,26 +285,8 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="tutorials.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">Tutorials</div>
-              </div>
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-            </a>
-          <a class="prev-page" href="index.html">
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-              <div class="page-info">
-                <div class="context">
-                  <span>Previous</span>
-                </div>
-                
-                <div class="title">Home</div>
-                
-              </div>
-            </a>
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -283,8 +317,17 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Installation</a><ul>
-<li><a class="reference internal" href="#from-source">From source</a></li>
+<li><a class="reference internal" href="#">Changelog</a><ul>
+<li><a class="reference internal" href="#v0-2-0">v0.2.0</a></li>
+<li><a class="reference internal" href="#v0-1-7b">v0.1.7b</a></li>
+<li><a class="reference internal" href="#v0-1-7">v0.1.7</a></li>
+<li><a class="reference internal" href="#v0-1-6">v0.1.6</a></li>
+<li><a class="reference internal" href="#v0-1-5">v0.1.5</a></li>
+<li><a class="reference internal" href="#v0-1-4">v0.1.4</a></li>
+<li><a class="reference internal" href="#v0-1-3">v0.1.3</a></li>
+<li><a class="reference internal" href="#v0-1-2">v0.1.2</a></li>
+<li><a class="reference internal" href="#v0-1-1">v0.1.1</a></li>
+<li><a class="reference internal" href="#v0-1-0">v0.1.0</a></li>
 </ul>
 </li>
 </ul>

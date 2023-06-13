@@ -10,16 +10,6 @@ In this way, you can hear the sound of any images, for educational, artistic, or
 
 Fully written in python, `herakoi` requires relatively little computational power and can be run on different on the most popular operating systems (macOS, Microsoft Windows, Linux). 
 
-
-## Installation
-
-`herakoi` runs on python 3, so make sure to have it installed on your computer. The most stable release of `herakoi` can then be installed through [pip](https://pip.pypa.io/en/stable/) simply as
-
-```bash
-pip install herakoi
-```
-This will install `herakoi` as well as all the dependencies required to fire it up.
-
 ## Usage
 
 1. run `herakoi path_to_your_favorite_image`

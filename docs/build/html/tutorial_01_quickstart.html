@@ -2,13 +2,14 @@
 <html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Tutorials" href="tutorials.html" /><link rel="prev" title="herakoi" href="index.html" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="Tutorials" href="tutorials.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
-        <title>Installation - herakoi v0.2.0 documentation</title>
+    <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
+        <title>&lt;no title&gt; - herakoi v0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
+    <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     
     
@@ -140,7 +141,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -162,14 +163,12 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Installation</a></li>
-</ul>
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="tutorials.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="issues.html">Known issues</a></li>
+</li>
 </ul>
 
 </div>
@@ -198,58 +197,56 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
-          <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">#</a></h1>
-<div class="warning admonition">
-<p class="admonition-title">using herakoi on Windows</p>
-<p>We tested <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> only on macOS or some linux distributions. We know, however, that <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> has been successfully installed on Windows machines too, but we can not guarantee that it will work properly. If you encounter any issues with the installation or with making <cite>herakoi</cite> run, please contact us.</p>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">herakoi</span></code> runs on python 3. To check whether you have already a working python build, you can try typing <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">--version</span></code>. If you get a message like <code class="docutils literal notranslate"><span class="pre">Python</span> <span class="pre">3.XX.YY</span></code> (with <code class="docutils literal notranslate"><span class="pre">XX</span></code> and <code class="docutils literal notranslate"><span class="pre">YY</span></code> on the specific version), then you are ready to go!</p>
-<p>The stable release of <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> can be installed through <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a> simply as</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>herakoi
+          <div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<p>This will install the main <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> library, as well as all the dependencies required to let you sonify your favorite images.</p>
-<section id="from-source">
-<h2>From source<a class="headerlink" href="#from-source" title="Permalink to this heading">#</a></h2>
-<p>If you feel adventurous, you can instead give a try to the pre-release version. Since th source files of <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> are hosted on <a class="reference external" href="https://github.com/lucadimascolo/herakoi">GitHub</a>, you can directly clone the repository and install it from there:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/lucadimascolo/herakoi.git
-<span class="nb">cd</span><span class="w"> </span>herakoi
-python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>e<span class="w"> </span>.
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">herakoi</span>
 </pre></div>
 </div>
-<p>Please note that, in this case, many features might still be in an experimental stage, and might not work properly. If you find any bug, though, feel free to contact us by email or by commenting on the <a class="reference external" href="https://github.com/lucadimascolo/herakoi/issues">GitHub issue tracker</a>.</p>
-</section>
-</section>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
+Cell <span class="ansi-green-fg">In[1], line 1</span>
+<span class="ansi-green-fg">----&gt; 1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span> <span class="ansi-bold" style="color: rgb(0,0,255)">herakoi</span>
+
+<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;herakoi&#39;
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="tutorials.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">Tutorials</div>
-              </div>
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-            </a>
-          <a class="prev-page" href="index.html">
+          
+          <a class="prev-page" href="tutorials.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Home</div>
+                <div class="title">Tutorials</div>
                 
               </div>
             </a>
@@ -271,27 +268,8 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">Installation</a><ul>
-<li><a class="reference internal" href="#from-source">From source</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>
@@ -300,5 +278,8 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/scripts/furo.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

@@ -2,10 +2,10 @@
 <html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Installation" href="installation.html" />
 
-    <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
         <title>herakoi v0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
@@ -140,7 +140,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -162,9 +162,15 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
+  <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
 
 </div>
@@ -193,7 +199,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -203,12 +209,36 @@
 <h1>herakoi<a class="headerlink" href="#herakoi" title="Permalink to this heading">#</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">herakoi</span></code> is a motion-sensing sonification experiment.</p>
 <p>It leverages a machine learning-based algorithm for performing hand recognition and to track in real time the position of your hands in the scene observed by a webcam connected to your computer. The model landmark coordinates of your hands are re-projected onto the pixel coordinates of your favorite image. The visual properties of the “touched” pixels (at the moment, color and saturation) are then converted into sound properties of your favorite instrument, which you can choose from your favorite virtual MIDI keyboard.</p>
+<section id="using-this-guide">
+<h2>Using this guide<a class="headerlink" href="#using-this-guide" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 </ul>
 </div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#quickstart">Quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#tuning-the-sonification-parameters">Tuning the sonification parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#opening-multiple-images">Opening multiple images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#hand-tracking-modes">Hand-tracking modes</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+</div>
+</section>
+<section id="license-attribution">
+<h2>License &amp; Attribution<a class="headerlink" href="#license-attribution" title="Permalink to this heading">#</a></h2>
+<p>Copyright 2022 Michele Ginolfi, Luca Di Mascolo, and contributors.</p>
+<p><code class="docutils literal notranslate"><span class="pre">herakoi</span></code> is a free software made available under the MIT License. For details see the <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> file.</p>
+</section>
 </section>
 
         </article>
@@ -244,8 +274,30 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">herakoi</a><ul>
+<li><a class="reference internal" href="#using-this-guide">Using this guide</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#license-attribution">License &amp; Attribution</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
