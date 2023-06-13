@@ -7,10 +7,10 @@ The stable release of ``herakoi`` can be installed through `pip <https://pip.pyp
 
   python -m pip install herakoi
 
-If you feel adventurous, you can instead give a try to the dev release as follows:
+If you feel adventurous, you can instead give a try to the dev release:
 
   git clone https://github.com/lucadimascolo/herakoi.git
 
   cd herakoi
-  
+
   python -m pip install e . 
