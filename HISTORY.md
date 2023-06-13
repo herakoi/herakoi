@@ -1,3 +1,6 @@
+## v0.2.0
+* First official release
+
 ## v0.1.7b
 * Automatic switch to mediapipe/mediapipe-silicon
 
