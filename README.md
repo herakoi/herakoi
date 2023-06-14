@@ -1,6 +1,6 @@
 # herakoi 
 
-[![Documentation Status](https://readthedocs.org/projects/herakoi/badge/?version=latest)](https://herakoi.readthedocs.io/en/latest/?badge=latest)
+![PyPI version](https://img.shields.io/pypi/v/herakoi) [![Documentation Status](https://readthedocs.org/projects/herakoi/badge/?version=latest)](https://herakoi.readthedocs.io/en/latest/?badge=latest)
 
 `herakoi` is a motion-sensing sonification experiment. 
 
