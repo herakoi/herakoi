@@ -222,6 +222,8 @@ class start:
 # Single-user mode
 # =====================================
   def run(self,mode='single',vlims=vlims_,flims=flims_,**kwargs):
+    imgonly = kwargs.get('imgonly',False)
+
     ophands = self.mphands.Hands(max_num_hands=2 if mode=='scan' else 1)
 
     onmusic = False
@@ -261,7 +263,11 @@ class start:
             if imlabel=='Right': pxmusic[0] = px
             if imlabel=='Left':  pxmusic[1] = py
 
+            pxpatch = [self.oppatch,self.oppatch]
+
           cv2.circle(immusic,(pxmusic[0],pxmusic[1]),pxmusic[2],(255,255,255),-1)
+
+          bhmidif, bhmidiv = self.getmex(pxmusic,pxpatch,vlims,flims)
 
         else:
           for mi, immarks in enumerate(imhands.multi_hand_landmarks):
@@ -299,7 +305,7 @@ class start:
               bhmidif = rhmidif if bhmidif is None else int(0.50*(rhmidif+bhmidif))
               bhmidiv = rhmidiv if bhmidiv is None else int(0.50*(rhmidiv+bhmidiv))
 
-        if mode in ['single','adaptive']:
+        if mode in ['single','adaptive','scan']:
           if (bhmidif is not None) and (bhmidiv is not None):
             if time.time()-tictime>toctime and not onmusic:
               self.midiout.send(mido.Message('note_on',channel=8,note=bhmidif,velocity=bhmidiv))
@@ -314,9 +320,8 @@ class start:
           else: self.panic()
       else: self.panic()
 
-      if False:
-        cv2.imshow('imframe',opframe)
-        cv2.imshow('immusic',immusic)
+      if imgonly:
+        mixframe = immusic
       else:
         opframe = cv2.resize(opframe,None,fx=immusic.shape[0]/opframe.shape[0],fy=immusic.shape[0]/opframe.shape[0])
 
@@ -324,27 +329,27 @@ class start:
         mixframe[:opframe.shape[0],:opframe.shape[1],:] = opframe
         mixframe[:immusic.shape[0],opframe.shape[1]:,:] = immusic
 
-        # Show the combined image in a window
-        cv2.imshow('mixframe',mixframe)
+      # Show the combined image in a window
+      cv2.imshow('mixframe',mixframe)
 
-        hm, wm, _ = mixframe.shape
+      hm, wm, _ = mixframe.shape
 
-        if   (hm/wm)>(scrh/scrw):
-          hr = fill*scrh
-          wr = fill*scrh*wm/hm
-        elif (hm/wm)<=(scrh/scrw):
-          hr = fill*scrw*hm/wm
-          wr = fill*scrw
+      if   (hm/wm)>(scrh/scrw):
+        hr = fill*scrh
+        wr = fill*scrh*wm/hm
+      elif (hm/wm)<=(scrh/scrw):
+        hr = fill*scrw*hm/wm
+        wr = fill*scrw
 
-        wr, hr = int(wr), int(hr)
+      wr, hr = int(wr), int(hr)
 
-        cv2.resizeWindow('mixframe',wr,hr)
+      cv2.resizeWindow('mixframe',wr,hr)
 
       if (cv2.waitKey(1) & 0xFF == ord('q')) or (pressed is not None): break
 
     self.opvideo.release()
     cv2.destroyAllWindows()
-
+    cv2.waitKey(1)
 
 # Turn off all MIDI notes
 # =====================================
