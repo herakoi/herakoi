@@ -1,7 +1,6 @@
 # herakoi 
 
 
-
 [![DOI](https://zenodo.org/badge/515594944.svg)](https://zenodo.org/badge/latestdoi/515594944)
 ![PyPI version](https://img.shields.io/pypi/v/herakoi) [![Documentation Status](https://readthedocs.org/projects/herakoi/badge/?version=latest)](https://herakoi.readthedocs.io/en/latest/?badge=latest)
 
