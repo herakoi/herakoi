@@ -316,7 +316,7 @@ class start:
               self.midiout.send(mido.Message('note_off',channel=8,note=bhmidif))
               self.panic(); onmusic = False
               
-              tic = time.time()
+              tictime = time.time()
           else: self.panic()
       else: self.panic()
 
