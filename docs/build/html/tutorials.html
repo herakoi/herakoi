@@ -1,15 +1,15 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Known issues" href="issues.html" /><link rel="prev" title="Installation" href="installation.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>Tutorials - herakoi v0.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -170,6 +170,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
 
 </div>
@@ -205,10 +206,10 @@
         </div>
         <article role="main">
           <section id="tutorials">
-<h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading">#</a></h1>
+<h1>Tutorials<a class="headerlink" href="#tutorials" title="Link to this heading">#</a></h1>
 <section id="quickstart">
-<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this heading">#</a></h2>
-<p>First and foremost, <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> works by sending sound information to an external software via MIDI messages. As such, before starting a sonification session, you should open a MIDI player (for example, GarageBand) and select your favorite virtual instrument.</p>
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading">#</a></h2>
+<p>First and foremost, <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> works by sending sound information to an external software via MIDI messages. As such, before starting a sonification session, you should open a MIDI player (for example, GarageBand, LMMS, or any online player as Soundtrap) and select your favorite virtual instrument.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> was installed successfully, you should be able to run a sonification session by simply running the command <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> from the terminal. This will open a browser window from which you can select the image you would like to sonify.</p>
 <p>Alternatively, you can define the path to your image as</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>herakoi<span class="w"> </span>&lt;path-to-your-image&gt;
@@ -217,26 +218,32 @@
 <p>You should now see a new window showing the selected image as well as the video captured by the webcam. The MIDI player should automatically recognize <code class="docutils literal notranslate"><span class="pre">herakoi</span></code> as an external MIDI instrument and be immediately able to generate sound.</p>
 </section>
 <section id="tuning-the-sonification-parameters">
-<h2>Tuning the sonification parameters<a class="headerlink" href="#tuning-the-sonification-parameters" title="Permalink to this heading">#</a></h2>
+<h2>Tuning the sonification parameters<a class="headerlink" href="#tuning-the-sonification-parameters" title="Link to this heading">#</a></h2>
 <p>…</p>
 </section>
 <section id="opening-multiple-images">
-<h2>Opening multiple images<a class="headerlink" href="#opening-multiple-images" title="Permalink to this heading">#</a></h2>
+<h2>Opening multiple images<a class="headerlink" href="#opening-multiple-images" title="Link to this heading">#</a></h2>
 <p>…</p>
 </section>
 <section id="hand-tracking-modes">
-<h2>Hand-tracking modes<a class="headerlink" href="#hand-tracking-modes" title="Permalink to this heading">#</a></h2>
+<h2>Hand-tracking modes<a class="headerlink" href="#hand-tracking-modes" title="Link to this heading">#</a></h2>
 <section id="mode-single">
-<h3><code class="docutils literal notranslate"><span class="pre">mode='single'</span></code><a class="headerlink" href="#mode-single" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">mode='single'</span></code><a class="headerlink" href="#mode-single" title="Link to this heading">#</a></h3>
 <p>…</p>
 </section>
 <section id="mode-adaptive">
-<h3><code class="docutils literal notranslate"><span class="pre">mode='adaptive'</span></code><a class="headerlink" href="#mode-adaptive" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">mode='adaptive'</span></code><a class="headerlink" href="#mode-adaptive" title="Link to this heading">#</a></h3>
 <p>…</p>
 </section>
 <section id="mode-scan">
-<h3><code class="docutils literal notranslate"><span class="pre">mode='scan'</span></code><a class="headerlink" href="#mode-scan" title="Permalink to this heading">#</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">mode='scan'</span></code><a class="headerlink" href="#mode-scan" title="Link to this heading">#</a></h3>
 <p>…</p>
+</section>
+</section>
+<section id="additional-commands">
+<h2>Additional commands<a class="headerlink" href="#additional-commands" title="Link to this heading">#</a></h2>
+<section id="imgonly">
+<h3><code class="docutils literal notranslate"><span class="pre">imgonly</span></code><a class="headerlink" href="#imgonly" title="Link to this heading">#</a></h3>
 </section>
 </section>
 </section>
@@ -306,6 +313,10 @@
 <li><a class="reference internal" href="#mode-scan"><code class="docutils literal notranslate"><span class="pre">mode='scan'</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#additional-commands">Additional commands</a><ul>
+<li><a class="reference internal" href="#imgonly"><code class="docutils literal notranslate"><span class="pre">imgonly</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -317,9 +328,9 @@
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=683873e3"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
     </body>
 </html>

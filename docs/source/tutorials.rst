@@ -48,3 +48,10 @@ Hand-tracking modes
 ^^^^^^^^^^^^^^^
 
 ...
+
+
+Additional commands
+-------------------
+
+``imgonly``
+^^^^^^^^^^^
