@@ -1,3 +1,7 @@
+## v0.2.1
+* exit shortcut using the `esc` button
+* minor bug fixes
+
 ## v0.2.0
 * First official release
 * Video capture keyword

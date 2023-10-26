@@ -69,6 +69,7 @@ def nametopitch(name):
 # -------------------------------------
 def on_press(key):
   global pressed
+  if key == Key.esc:   pressed = 'esc'
   if key == Key.right: pressed = 'right'
   if key == Key.left:  pressed = 'left'
   if key == Key.up:    pressed = 'up'
@@ -78,7 +79,6 @@ def on_press(key):
 # =====================================
 class start:
   def __init__(self,image=None,mode='single',port={},video=0,box=2,switch=True,**kwargs):
-    
     global pressed
 
     self.listener = keyboard.Listener(on_press=on_press)
@@ -153,21 +153,25 @@ class start:
 
       self.run(mode,vlims=vlims,flims=flims,**kwargs)
 
-      if  pressed=='right':
-        imginit = imginit+1 if imginit<(len(imgpath)-1) else 0
-      elif pressed=='left':
-        imginit = imginit-1 if imginit>0 else len(imgpath)-1
+      if pressed=='esc':
+        break
+      else:
+        if pressed in ['right','left']:
+          if pressed=='right':
+            imginit = imginit+1 if imginit<(len(imgpath)-1) else 0
+          elif pressed=='left':
+            imginit = imginit-1 if imginit>0 else len(imgpath)-1
 
-      if pressed in ['up','down']:
-        if pressed=='up':
-          modinit = modinit+1 if modinit<(len(modlist)-1) else 0
-        elif pressed=='down':
-          modinit = modinit-1 if modinit>0 else len(modlist)-1
+        if pressed in ['up','down']:
+          if pressed=='up':
+            modinit = modinit+1 if modinit<(len(modlist)-1) else 0
+          elif pressed=='down':
+            modinit = modinit-1 if modinit>0 else len(modlist)-1
 
-        mode = modlist[modinit]
-        print('changin mode to "{0}"'.format(mode),modinit)
+          mode = modlist[modinit]
+          print('changin mode to "{0}"'.format(mode),modinit)
 
-      pressed = None
+        pressed = None
 
 
 # Convert H and B to note and loudness
@@ -222,6 +226,8 @@ class start:
 # Single-user mode
 # =====================================
   def run(self,mode='single',vlims=vlims_,flims=flims_,**kwargs):
+    global pressed
+
     imgonly = kwargs.get('imgonly',False)
 
     ophands = self.mphands.Hands(max_num_hands=2 if mode=='scan' else 1)
@@ -329,20 +335,17 @@ class start:
         mixframe[:opframe.shape[0],:opframe.shape[1],:] = opframe
         mixframe[:immusic.shape[0],opframe.shape[1]:,:] = immusic
 
-      # Show the combined image in a window
-      cv2.imshow('mixframe',mixframe)
-
       hm, wm, _ = mixframe.shape
 
       if   (hm/wm)>(scrh/scrw):
-        hr = fill*scrh
-        wr = fill*scrh*wm/hm
+        hr = int(fill*scrh)
+        wr = int(fill*scrh*wm/hm)
       elif (hm/wm)<=(scrh/scrw):
-        hr = fill*scrw*hm/wm
-        wr = fill*scrw
+        hr = int(fill*scrw*hm/wm)
+        wr = int(fill*scrw)
 
-      wr, hr = int(wr), int(hr)
-
+      # Show the combined image in a window
+      cv2.imshow('mixframe',mixframe)
       cv2.resizeWindow('mixframe',wr,hr)
 
       if (cv2.waitKey(1) & 0xFF == ord('q')) or (pressed is not None): break
