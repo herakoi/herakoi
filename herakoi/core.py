@@ -119,6 +119,7 @@ class start:
   # Start capture from webcam
   # -------------------------------------
     self.imgfull = kwargs.get('fullscreen',False)
+    self.padfull = kwargs.get('pad',False) if self.imgfull else False
 
     while True:
       self.opvideo = cv2.VideoCapture(video)
@@ -333,13 +334,32 @@ class start:
       mixframe = immusic
 
       if self.imgfull:
-        if not imgonly:
-          opframe  = cv2.resize(opframe,None,fx=0.20*immusic.shape[0]/opframe.shape[0],
-                                            fy=0.20*immusic.shape[0]/opframe.shape[0])
-          mixframe[                  int(0.01*immusic.shape[0]):opframe.shape[0]+int(0.01*immusic.shape[0]),
-                  -opframe.shape[1]-int(0.01*immusic.shape[0]):                -int(0.01*immusic.shape[0])] = opframe
+        hm, wm, _ = mixframe.shape
+        if self.padfull:
+          if hm>wm:
+            resframe = cv2.resize(mixframe,None,fx=scrh/hm,fy=scrh/hm)
+            mixframe = np.zeros((scrh,scrw,mixframe.shape[2]),dtype=mixframe.dtype)
+            mixframe[:,(scrw-resframe.shape[1])//2:(scrw-resframe.shape[1])//2+resframe.shape[1],:] = resframe.copy()
+          else:    
+            resframe = cv2.resize(mixframe,None,fx=scrw/wm,fy=scrw/wm)
+            mixframe = np.zeros((scrh,scrw,mixframe.shape[2]),dtype=mixframe.dtype)
+            mixframe[(scrh-resframe.shape[0])//2:(scrh-resframe.shape[0])//2+resframe.shape[0],:,:] = resframe.copy()
+        else:
+          if hm>wm: 
+            mixframe = cv2.resize(mixframe,None,fx=scrw/wm,fy=scrw/wm)
+            mixframe = mixframe[(mixframe.shape[0]-scrh)//2:(mixframe.shape[0]-scrh)//2+scrh,:,:]
+          else:     
+            mixframe = cv2.resize(mixframe,None,fx=scrh/hm,fy=scrh/hm)
+            mixframe = mixframe[:,(mixframe.shape[1]-scrw)//2:(mixframe.shape[1]-scrw)//2+scrw,:]
+
+        if not imgonly:            
+          opframe  = cv2.resize(opframe,None,fx=0.20*mixframe.shape[0]/opframe.shape[0],
+                                             fy=0.20*mixframe.shape[0]/opframe.shape[0])
+          mixframe[                  int(0.01*mixframe.shape[0]):opframe.shape[0]+int(0.01*mixframe.shape[0]),
+                   -opframe.shape[1]-int(0.01*mixframe.shape[0]):                -int(0.01*mixframe.shape[0])] = opframe
         
         cv2.imshow('mixframe',mixframe)
+        cv2.resizeWindow('mixframe',scrw,scrh)
       else:
         if not imgonly:
           opframe = cv2.resize(opframe,None,fx=immusic.shape[0]/opframe.shape[0],fy=immusic.shape[0]/opframe.shape[0])

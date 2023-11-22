@@ -23,6 +23,7 @@ def basic():
   pars.add_argument('--switch',action='store_true')
   pars.add_argument('--imgonly',action='store_true')
   pars.add_argument('--fullscreen',action='store_true')
+  pars.add_argument('--pad',action='store_true')
   args = pars.parse_args()
 
   start(image = args.image,
@@ -33,4 +34,5 @@ def basic():
        switch = args.switch,
       imgonly = args.imgonly,
    fullscreen = args.fullscreen,
+          pad = args.pad,
         video = args.video)
