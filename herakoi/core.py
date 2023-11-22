@@ -118,12 +118,17 @@ class start:
 
   # Start capture from webcam
   # -------------------------------------
+    self.imgfull = kwargs.get('fullscreen',False)
+
     while True:
       self.opvideo = cv2.VideoCapture(video)
       self.opmusic = gethsv(imgpath[imginit])
 
       cv2.namedWindow('mixframe',cv2.WINDOW_NORMAL)
-      cv2.setWindowProperty('mixframe',cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
+
+      if self.imgfull:
+      # cv2.namedWindow('mixframe',cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty('mixframe',cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)      
 
       self.mphands = mp.solutions.hands
       self.mpdraws = mp.solutions.drawing_utils
@@ -228,7 +233,6 @@ class start:
     global pressed
 
     imgonly = kwargs.get('imgonly',False)
-    imgfull = kwargs.get('fullscreen',False)
 
     ophands = self.mphands.Hands(max_num_hands=2 if mode=='scan' else 1)
 
@@ -328,7 +332,7 @@ class start:
 
       mixframe = immusic
 
-      if imgfull:
+      if self.imgfull:
         if not imgonly:
           opframe  = cv2.resize(opframe,None,fx=0.20*immusic.shape[0]/opframe.shape[0],
                                             fy=0.20*immusic.shape[0]/opframe.shape[0])
