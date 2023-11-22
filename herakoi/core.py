@@ -128,9 +128,7 @@ class start:
       cv2.namedWindow('mixframe',cv2.WINDOW_NORMAL)
 
       if self.imgfull:
-      # cv2.namedWindow('mixframe',cv2.WND_PROP_FULLSCREEN)
         cv2.setWindowProperty('mixframe',cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)      
-      # pass
 
       self.mphands = mp.solutions.hands
       self.mpdraws = mp.solutions.drawing_utils
