@@ -1,6 +1,7 @@
 ## v0.2.1
 * exit shortcut using the `esc` button
 * minor bug fixes
+* fullscreen mode, activated with the inline flag --fullscreen; the option --pad allows for adding padding in order to show the full image instead of cropping it
 
 ## v0.2.0
 * First official release

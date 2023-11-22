@@ -130,6 +130,7 @@ class start:
       if self.imgfull:
       # cv2.namedWindow('mixframe',cv2.WND_PROP_FULLSCREEN)
         cv2.setWindowProperty('mixframe',cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)      
+      # pass
 
       self.mphands = mp.solutions.hands
       self.mpdraws = mp.solutions.drawing_utils
@@ -335,8 +336,9 @@ class start:
 
       if self.imgfull:
         hm, wm, _ = mixframe.shape
+
         if self.padfull:
-          if hm>wm:
+          if (hm/wm)>(scrh/scrw):
             resframe = cv2.resize(mixframe,None,fx=scrh/hm,fy=scrh/hm)
             mixframe = np.zeros((scrh,scrw,mixframe.shape[2]),dtype=mixframe.dtype)
             mixframe[:,(scrw-resframe.shape[1])//2:(scrw-resframe.shape[1])//2+resframe.shape[1],:] = resframe.copy()
@@ -345,13 +347,13 @@ class start:
             mixframe = np.zeros((scrh,scrw,mixframe.shape[2]),dtype=mixframe.dtype)
             mixframe[(scrh-resframe.shape[0])//2:(scrh-resframe.shape[0])//2+resframe.shape[0],:,:] = resframe.copy()
         else:
-          if hm>wm: 
+          if (hm/wm)>(scrh/scrw): 
             mixframe = cv2.resize(mixframe,None,fx=scrw/wm,fy=scrw/wm)
             mixframe = mixframe[(mixframe.shape[0]-scrh)//2:(mixframe.shape[0]-scrh)//2+scrh,:,:]
-          else:     
+          else:
             mixframe = cv2.resize(mixframe,None,fx=scrh/hm,fy=scrh/hm)
             mixframe = mixframe[:,(mixframe.shape[1]-scrw)//2:(mixframe.shape[1]-scrw)//2+scrw,:]
-
+          
         if not imgonly:            
           opframe  = cv2.resize(opframe,None,fx=0.20*mixframe.shape[0]/opframe.shape[0],
                                              fy=0.20*mixframe.shape[0]/opframe.shape[0])
