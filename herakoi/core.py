@@ -122,9 +122,8 @@ class start:
       self.opvideo = cv2.VideoCapture(video)
       self.opmusic = gethsv(imgpath[imginit])
 
-      cv2.namedWindow('imframe',cv2.WINDOW_NORMAL)
-      cv2.namedWindow('immusic',cv2.WINDOW_NORMAL)
       cv2.namedWindow('mixframe',cv2.WINDOW_NORMAL)
+      cv2.setWindowProperty('mixframe',cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 
       self.mphands = mp.solutions.hands
       self.mpdraws = mp.solutions.drawing_utils
@@ -229,6 +228,7 @@ class start:
     global pressed
 
     imgonly = kwargs.get('imgonly',False)
+    imgfull = kwargs.get('fullscreen',False)
 
     ophands = self.mphands.Hands(max_num_hands=2 if mode=='scan' else 1)
 
@@ -326,27 +326,36 @@ class start:
           else: self.panic()
       else: self.panic()
 
-      if imgonly:
-        mixframe = immusic
+      mixframe = immusic
+
+      if imgfull:
+        if not imgonly:
+          opframe  = cv2.resize(opframe,None,fx=0.20*immusic.shape[0]/opframe.shape[0],
+                                            fy=0.20*immusic.shape[0]/opframe.shape[0])
+          mixframe[                  int(0.01*immusic.shape[0]):opframe.shape[0]+int(0.01*immusic.shape[0]),
+                  -opframe.shape[1]-int(0.01*immusic.shape[0]):                -int(0.01*immusic.shape[0])] = opframe
+        
+        cv2.imshow('mixframe',mixframe)
       else:
-        opframe = cv2.resize(opframe,None,fx=immusic.shape[0]/opframe.shape[0],fy=immusic.shape[0]/opframe.shape[0])
+        if not imgonly:
+          opframe = cv2.resize(opframe,None,fx=immusic.shape[0]/opframe.shape[0],fy=immusic.shape[0]/opframe.shape[0])
 
-        mixframe = np.zeros((max(opframe.shape[0], immusic.shape[0]), opframe.shape[1] + immusic.shape[1], 3), dtype=np.uint8)
-        mixframe[:opframe.shape[0],:opframe.shape[1],:] = opframe
-        mixframe[:immusic.shape[0],opframe.shape[1]:,:] = immusic
+          mixframe = np.zeros((max(opframe.shape[0], immusic.shape[0]), opframe.shape[1] + immusic.shape[1], 3), dtype=np.uint8)
+          mixframe[:opframe.shape[0],:opframe.shape[1],:] = opframe
+          mixframe[:immusic.shape[0],opframe.shape[1]:,:] = immusic
 
-      hm, wm, _ = mixframe.shape
+        hm, wm, _ = mixframe.shape
 
-      if   (hm/wm)>(scrh/scrw):
-        hr = int(fill*scrh)
-        wr = int(fill*scrh*wm/hm)
-      elif (hm/wm)<=(scrh/scrw):
-        hr = int(fill*scrw*hm/wm)
-        wr = int(fill*scrw)
+        if   (hm/wm)>(scrh/scrw):
+          hr = int((0.90 if imgonly else fill)*scrh)
+          wr = int((0.90 if imgonly else fill)*scrh*wm/hm)
+        elif (hm/wm)<=(scrh/scrw):
+          hr = int((0.90 if imgonly else fill)*scrw*hm/wm)
+          wr = int((0.90 if imgonly else fill)*scrw)
 
       # Show the combined image in a window
-      cv2.imshow('mixframe',mixframe)
-      cv2.resizeWindow('mixframe',wr,hr)
+        cv2.imshow('mixframe',mixframe)
+        cv2.resizeWindow('mixframe',wr,hr)
 
       if (cv2.waitKey(1) & 0xFF == ord('q')) or (pressed is not None): break
 

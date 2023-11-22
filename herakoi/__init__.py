@@ -21,7 +21,16 @@ def basic():
                     help='Select video source',
                     default=0,type=int)
   pars.add_argument('--switch',action='store_true')
-  pars.add_argument('--imgonly',action='store_false')
+  pars.add_argument('--imgonly',action='store_true')
+  pars.add_argument('--fullscreen',action='store_true')
   args = pars.parse_args()
 
-  start(image=args.image,mode=args.mode,notes=(args.notes[0],args.notes[1]),volume=args.volume,box=args.box,switch=args.switch,imgonly=args.imgonly,video=args.video)
+  start(image = args.image,
+         mode = args.mode,
+        notes = (args.notes[0],args.notes[1]),
+       volume = args.volume,
+          box = args.box,
+       switch = args.switch,
+      imgonly = args.imgonly,
+   fullscreen = args.fullscreen,
+        video = args.video)
