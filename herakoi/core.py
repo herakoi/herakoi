@@ -127,7 +127,7 @@ class start:
 
       if self.imgfull:
         cv2.namedWindow('mixframe',cv2.WND_PROP_FULLSCREEN)
-        cv2.setWindowProperty('mixframe',cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)      
+        cv2.setWindowProperty('mixframe',cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
       else:
         cv2.namedWindow('mixframe',cv2.WINDOW_NORMAL)
 
@@ -352,7 +352,7 @@ class start:
           else:
             mixframe = cv2.resize(mixframe,None,fx=scrh/hm,fy=scrh/hm)
             mixframe = mixframe[:,(mixframe.shape[1]-scrw)//2:(mixframe.shape[1]-scrw)//2+scrw,:]
-          
+
         if not imgonly:            
           opframe  = cv2.resize(opframe,None,fx=0.20*mixframe.shape[0]/opframe.shape[0],
                                              fy=0.20*mixframe.shape[0]/opframe.shape[0])
