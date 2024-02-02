@@ -1,6 +1,7 @@
 import argparse
 
 import numpy as np
+import scipy.interpolate
 import re
 
 import cv2
@@ -14,13 +15,14 @@ from pynput import keyboard
 from pynput.keyboard import Key
 
 import mido
+import mingus
 import rtmidi
 
 import time
 import sys
 
 vlims_ = (40,127) 
-flims_ = (48, 95) # C2-B5
+flims_ = ('C2','B5')
 
 root = tkinter.Tk()
 scrw = root.winfo_screenwidth()
@@ -136,12 +138,6 @@ class start:
       if not self.imgfull:
         cv2.namedWindow('mixframe',cv2.WINDOW_NORMAL)
 
-    # if self.imgfull:
-    #   cv2.namedWindow('mixframe',cv2.WND_PROP_FULLSCREEN)
-    #   cv2.setWindowProperty('mixframe',cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
-    # else:
-    #   cv2.namedWindow('mixframe',cv2.WINDOW_NORMAL)
-
       self.mphands = mp.solutions.hands
       self.mpdraws = mp.solutions.drawing_utils
       self.mpstyle = mp.solutions.drawing_styles
@@ -162,11 +158,36 @@ class start:
         vlims = (np.interp(kwargs['volume'],(0,100),(0,127)),127)
       else: vlims = vlims_
 
-      if 'notes' in kwargs:
-        flims = (nametopitch(kwargs['notes'][0]),
-                 nametopitch(kwargs['notes'][1]))
-      else: flims = flims_
+      flims = kwargs.get('notes',flims_)
 
+      match = [re.match(r'^(?P<n>[A-Ga-g])(?P<off>[#b!]?)(?P<oct>[+-]?\d+)$',flims[0]),
+               re.match(r'^(?P<n>[A-Ga-g])(?P<off>[#b!]?)(?P<oct>[+-]?\d+)$',flims[1])]
+      flims = [nametopitch(f) for f in flims]
+
+      if 'scale' in kwargs:
+        refscale = getattr(mingus.core.scales,kwargs['scale'][0])
+        refscale = refscale(kwargs['scale'][1])
+      else:
+        refscale = mingus.core.scales.chromatic('C')
+      
+      linscale = []
+      for pi in range(int(match[0].group('oct')),int(match[1].group('oct'))+1):
+        for si in refscale:
+          linscale.append('{0}{1}'.format(si,pi))
+      linscale = np.array([nametopitch(si) for si in linscale])
+      
+      linscale = linscale[np.logical_and(linscale>=flims[0],linscale<=flims[1])]
+
+      self.finterp = scipy.interpolate.interp1d(np.linspace(self.opmusic.hsv[...,2 if self.switch else 0].min(),
+                                                            self.opmusic.hsv[...,2 if self.switch else 0].max(),
+                                                            linscale.shape[0]),
+                                                   linscale,kind='nearest-up')
+
+      self.vinterp = scipy.interpolate.interp1d(np.linspace(self.opmusic.hsv[...,0 if self.switch else 2].min(),
+                                                            self.opmusic.hsv[...,0 if self.switch else 2].max(),
+                                                            10),
+                                                np.linspace(vlims[0],vlims[1],10),kind='linear')
+      
       self.run(mode,vlims=vlims,flims=flims,**kwargs)
 
       if pressed=='esc':
@@ -192,20 +213,15 @@ class start:
 
 # Convert H and B to note and loudness
 # =====================================
-  def getmex(self,posx,box,vlims=vlims_,flims=flims_):
-    def getval(img,clip):
+  def getmex(self,posx,box):
+    def getval(img):
       val = np.median(img[np.clip(posx[1]-box[1]//2,0,self.opmusic.h-1):np.clip(posx[1]+box[1]//2,0,self.opmusic.h-1),
                           np.clip(posx[0]-box[0]//2,0,self.opmusic.w-1):np.clip(posx[0]+box[0]//2,0,self.opmusic.w-1)])
       vmidi = 0 if np.isnan(val) else val
-      vmidi = int(np.interp(vmidi,(img.min(),img.max()),clip))
       return vmidi
 
-    if self.switch:
-      fout = getval(self.opmusic.hsv[...,2],flims)
-      vout = getval(self.opmusic.hsv[...,0],vlims)
-    else:
-      fout = getval(self.opmusic.hsv[...,0],flims)
-      vout = getval(self.opmusic.hsv[...,2],vlims)
+    fout = self.finterp(getval(self.opmusic.hsv[...,2 if self.switch else 0]))
+    vout = self.vinterp(getval(self.opmusic.hsv[...,0 if self.switch else 2]))
 
     return fout, vout
 
@@ -241,7 +257,7 @@ class start:
 
 # Single-user mode
 # =====================================
-  def run(self,mode='single',vlims=vlims_,flims=flims_,**kwargs):
+  def run(self,mode='single',**kwargs):
     global pressed
 
     imgonly = kwargs.get('imgonly',False)
@@ -289,7 +305,7 @@ class start:
 
           cv2.circle(immusic,(pxmusic[0],pxmusic[1]),pxmusic[2],(255,255,255),-1)
 
-          bhmidif, bhmidiv = self.getmex(pxmusic,pxpatch,vlims,flims)
+          bhmidif, bhmidiv = self.getmex(pxmusic,pxpatch)
 
         else:
           for mi, immarks in enumerate(imhands.multi_hand_landmarks):
@@ -319,10 +335,10 @@ class start:
               pxpatch = [self.oppatch,self.oppatch]
 
             if (mode in ['single','adaptive'] and imlabel=='Left') or (mode=='party'):
-              bhmidif, bhmidiv = self.getmex(pxmusic,pxpatch,vlims,flims)
+              bhmidif, bhmidiv = self.getmex(pxmusic,pxpatch)
             
             if (mode in ['single','adaptive'] and imlabel=='Right'):
-              rhmidif, rhmidiv = self.getmex(pxmusic,pxpatch,vlims,flims)
+              rhmidif, rhmidiv = self.getmex(pxmusic,pxpatch)
 
               bhmidif = rhmidif if bhmidif is None else int(0.50*(rhmidif+bhmidif))
               bhmidiv = rhmidiv if bhmidiv is None else int(0.50*(rhmidiv+bhmidiv))

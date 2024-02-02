@@ -23,9 +23,13 @@ You can customize your `herakoi` by using the following flags:
 * `--volume ZZ`, that will set lower threshold for the note volume (with `ZZ` in percentage)
 * `--switch`, inverting the color-brightness mapping 
 
-## FAQs
 
-A list of frequently asked questions.
+### Common issues
+We found that the `opencv-python` library has some compatibility issues with older operating systems (e.g., earlier than MacOS 11 Big Sur in the case of Apple machines). In such a case, installing a version of `opencv-python` earlier than `4.0` seems to solve the issue:
+
+```
+python -m pip install --force-reinstall "opencv-python<4"
+```
 
 ## Contributing
 

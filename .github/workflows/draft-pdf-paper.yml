@@ -1,0 +1,15 @@
+on: [push]
+
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    name: Paper Draft
+    steps:
+      - name: Open Journals PDF Generator
+        uses: openjournals/openjournals-draft-action@v.1.0
+        with:
+          journal: joss
+          # This should be the path to the paper within your repo.
+          paper-path: paper/paper.md
+          # Bibliography file, if existing
+          bibtex: paper/paper.bib
