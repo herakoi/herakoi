@@ -22,5 +22,7 @@ affiliations:
 
 date: XX XX XX
 bibliography: paper.bib
+---
 
 # Introduction
+... [@Zanella:2022]
