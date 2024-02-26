@@ -15,7 +15,7 @@ from pynput import keyboard
 from pynput.keyboard import Key
 
 import mido
-import mingus
+import mingus.core.scales
 import rtmidi
 
 import time
@@ -165,17 +165,17 @@ class start:
       flims = [nametopitch(f) for f in flims]
 
       if 'scale' in kwargs:
-        refscale = getattr(mingus.core.scales,kwargs['scale'][0])
+        refscale = getattr(mingus.core.scales,kwargs['scale'][0].capitalize())
         refscale = refscale(kwargs['scale'][1])
       else:
-        refscale = mingus.core.scales.chromatic('C')
+        refscale = mingus.core.scales.Chromatic('C')
       
       linscale = []
       for pi in range(int(match[0].group('oct')),int(match[1].group('oct'))+1):
-        for si in refscale:
+        for si in refscale.ascending():
           linscale.append('{0}{1}'.format(si,pi))
       linscale = np.array([nametopitch(si) for si in linscale])
-      
+
       linscale = linscale[np.logical_and(linscale>=flims[0],linscale<=flims[1])]
 
       self.finterp = scipy.interpolate.interp1d(np.linspace(self.opmusic.hsv[...,2 if self.switch else 0].min(),
@@ -223,7 +223,7 @@ class start:
     fout = self.finterp(getval(self.opmusic.hsv[...,2 if self.switch else 0]))
     vout = self.vinterp(getval(self.opmusic.hsv[...,0 if self.switch else 2]))
 
-    return fout, vout
+    return int(fout), int(vout)
 
 # Draw and return hand markers position
 # =====================================
