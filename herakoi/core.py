@@ -21,14 +21,13 @@ import rtmidi
 import time
 import sys
 
-vlims_ = (40,127) 
+vlims_ = (40,127)
 flims_ = ('C2','B5')
 
-root = tkinter.Tk()
-scrw = root.winfo_screenwidth()
-scrh = root.winfo_screenheight()
+# Screen dimensions - will be initialized when needed
+scrw = None
+scrh = None
 fill = 1.00
-root.withdraw()
 
 pygame.init()
 
@@ -70,6 +69,36 @@ def nametopitch(name):
       raise ValueError('Improper note format: {0}'.format(name))
 
     return 12*(octave+1)+pitch_map[pitch]+offset
+
+# Initialize screen dimensions
+# -------------------------------------
+def init_screen_dimensions():
+  global scrw, scrh
+  if scrw is not None and scrh is not None:
+    return  # Already initialized
+
+  try:
+    # Try using system_profiler on macOS to avoid Tkinter/pynput threading conflict
+    import subprocess
+    import platform
+
+    if platform.system() == 'Darwin':  # macOS
+      result = subprocess.run(['system_profiler', 'SPDisplaysDataType'],
+                            capture_output=True, text=True, timeout=2)
+      for line in result.stdout.split('\n'):
+        if 'Resolution' in line:
+          parts = line.strip().split()
+          if len(parts) >= 4:
+            scrw = int(parts[1])
+            scrh = int(parts[3])
+            break
+  except:
+    pass
+
+  # Fallback to common screen resolution if detection failed
+  if scrw is None or scrh is None:
+    scrw = 1920
+    scrh = 1080
 
 # Keyboard press
 # -------------------------------------
@@ -129,6 +158,7 @@ class start:
     self.padfull = kwargs.get('pad',False) if self.imgfull else False
 
     if self.imgfull:
+      init_screen_dimensions()
       screen = pygame.display.set_mode((scrw,scrh),pygame.FULLSCREEN)
 
     while True:
@@ -259,6 +289,9 @@ class start:
 # =====================================
   def run(self,mode='single',**kwargs):
     global pressed
+
+    # Initialize screen dimensions if needed
+    init_screen_dimensions()
 
     imgonly = kwargs.get('imgonly',False)
 
