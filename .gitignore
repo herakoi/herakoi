@@ -1,3 +1,23 @@
+# Python cache
 __pycache__/
-herakoi.egg-info/
-.DS_STORE
+*.pyc
+*.pyo
+*.pyd
+
+# macOS
+.DS_Store
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test files
+test_*.py
