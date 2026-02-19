@@ -21,3 +21,6 @@ build/
 
 # Test files
 test_*.py
+
+# Claude Code
+.claude/
