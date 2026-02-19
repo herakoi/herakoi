@@ -31,14 +31,14 @@ def basic():
   
   args = pars.parse_args()
 
-  start(image = args.image,
-         mode = args.mode,
-        scale = args.scale,
-        notes = (args.notes[0],args.notes[1]),
-       volume = args.volume,
-          box = args.box,
-       switch = args.switch,
-      imgonly = args.imgonly,
-   fullscreen = args.fullscreen,
-          pad = args.pad,
-        video = args.video)
+  HerakoiPlayer(image = args.image,
+                 mode = args.mode,
+                scale = args.scale,
+                notes = (args.notes[0],args.notes[1]),
+               volume = args.volume,
+                  box = args.box,
+               switch = args.switch,
+              imgonly = args.imgonly,
+           fullscreen = args.fullscreen,
+                  pad = args.pad,
+                video = args.video)

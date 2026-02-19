@@ -21,408 +21,485 @@ import rtmidi
 import time
 import sys
 
-vlims_ = (40,127) 
-flims_ = ('C2','B5')
+DEFAULT_VELOCITY_RANGE = (40, 127)  # MIDI velocity (volume) range
+DEFAULT_NOTE_RANGE = ('C2', 'B5')   # MIDI note (pitch) range
 
-root = tkinter.Tk()
-scrw = root.winfo_screenwidth()
-scrh = root.winfo_screenheight()
-fill = 1.00
-root.withdraw()
+# Screen dimensions - will be initialized when needed
+screen_width = None
+screen_height = None
+window_fill_ratio = 1.00
 
 pygame.init()
 
-global pressed; pressed = None
-global  screen; screen  = None
+global keyboard_input; keyboard_input = None
+global screen;         screen         = None
 
-# Convert BGR image into HSV
+# Convert BGR image into HSV for sonification
 # -------------------------------------
-class gethsv:
-  def __init__(self,inp):
-    self.bgr = cv2.imread(inp)
+class ImageToHSV:
+  def __init__(self, image_path):
+    self.bgr = cv2.imread(image_path)
 
-    self.h, self.w, _ = self.bgr.shape
+    self.height, self.width, _ = self.bgr.shape
 
-    self.hsv = cv2.cvtColor(self.bgr,cv2.COLOR_BGR2HSV)
-    
-    self.mono = np.logical_and((self.bgr[...,0]==self.bgr[...,1]).all(),
-                               (self.bgr[...,1]==self.bgr[...,2]).all())
+    self.hsv = cv2.cvtColor(self.bgr, cv2.COLOR_BGR2HSV)
 
-    if self.mono:
+    # Check if image is monochrome (all channels equal)
+    self.is_monochrome = np.logical_and((self.bgr[...,0]==self.bgr[...,1]).all(),
+                                        (self.bgr[...,1]==self.bgr[...,2]).all())
+
+    if self.is_monochrome:
+      # For monochrome images, use brightness as hue
       self.hsv[...,0] = self.hsv[...,2].copy()
     else:
-      self.hsv[self.hsv[...,0]>150.00,0] = 0.00
+      # Clip high hue values to avoid red color wraparound
+      self.hsv[self.hsv[...,0]>150.00, 0] = 0.00
 
-# Convert key name
+# Convert note name (e.g., "C4", "F#5") to MIDI pitch number
 # Ported from the pretty-midi package
 # -------------------------------------
-def nametopitch(name):
+def note_name_to_midi_pitch(note_name):
+    """Convert a note name like 'C4' or 'F#5' to MIDI pitch number (0-127)"""
     pitch_map = {'C': 0, 'D': 2, 'E':  4, 'F':  5, 'G': 7, 'A': 9, 'B': 11}
-    accen_map = {'#': 1,  '': 0, 'b': -1, '!': -1}
+    accidental_map = {'#': 1,  '': 0, 'b': -1, '!': -1}
 
     try:
-      match = re.match(r'^(?P<n>[A-Ga-g])(?P<off>[#b!]?)(?P<oct>[+-]?\d+)$',name)
+      match = re.match(r'^(?P<n>[A-Ga-g])(?P<off>[#b!]?)(?P<oct>[+-]?\d+)$', note_name)
 
       pitch = match.group('n').upper()
-      offset = accen_map[match.group('off')]
+      offset = accidental_map[match.group('off')]
       octave = int(match.group('oct'))
     except:
-      raise ValueError('Improper note format: {0}'.format(name))
+      raise ValueError('Improper note format: {0}'.format(note_name))
 
-    return 12*(octave+1)+pitch_map[pitch]+offset
+    return 12 * (octave + 1) + pitch_map[pitch] + offset
 
-# Keyboard press
+# Initialize screen dimensions
+# -------------------------------------
+def init_screen_dimensions():
+  global screen_width, screen_height
+  if screen_width is not None and screen_height is not None:
+    return  # Already initialized
+
+  try:
+    # Try using system_profiler on macOS to avoid Tkinter/pynput threading conflict
+    import subprocess
+    import platform
+
+    if platform.system() == 'Darwin':  # macOS
+      result = subprocess.run(['system_profiler', 'SPDisplaysDataType'],
+                              capture_output=True, text=True, timeout=2)
+      for line in result.stdout.split('\n'):
+        if 'Resolution' in line:
+          parts = line.strip().split()
+          if len(parts) >= 4:
+            screen_width  = int(parts[1])
+            screen_height = int(parts[3])
+            break
+  except:
+    pass
+
+  # Fallback to common screen resolution if detection failed
+  if screen_width is None or screen_height is None:
+    screen_width  = 1920
+    screen_height = 1080
+
+# Keyboard press handler for navigation
 # -------------------------------------
 def on_press(key):
-  global pressed
-  if key == Key.esc:   pressed = 'esc'
-  if key == Key.right: pressed = 'right'
-  if key == Key.left:  pressed = 'left'
-  if key == Key.up:    pressed = 'up'
-  if key == Key.down:  pressed = 'down'
+  global keyboard_input
+  if key == Key.esc:   keyboard_input = 'esc'
+  if key == Key.right: keyboard_input = 'right'
+  if key == Key.left:  keyboard_input = 'left'
+  if key == Key.up:    keyboard_input = 'up'
+  if key == Key.down:  keyboard_input = 'down'
 
 # Build the herakoi player
 # =====================================
-class start:
-  def __init__(self,image=None,mode='single',port={},video=0,box=2,switch=True,**kwargs):
-    global pressed
+class HerakoiPlayer:
+  def __init__(self, image=None, mode='single', port={}, video=0, box=2, switch=True, **kwargs):
+    global keyboard_input
     global screen
 
     self.listener = keyboard.Listener(on_press=on_press)
-    self.listener.start()  
+    self.listener.start()
 
-    self.switch = switch
+    self.invert_color_mapping = switch
 
     if image is None:
       tkinter.Tk().withdraw()
-      imgpath = filedialog.askopenfilenames()
-        
-      if len(imgpath)<1: sys.exit(1)
-    else: imgpath = image
+      image_paths = filedialog.askopenfilenames()
 
-    if isinstance(imgpath,str): imgpath = [imgpath]
+      if len(image_paths) < 1: sys.exit(1)
+    else: image_paths = image
 
-    imginit = 0
+    if isinstance(image_paths, str): image_paths = [image_paths]
 
-    modlist = ['single','adaptive','scan']
-    if mode not in modlist:
+    current_image_index = 0
+
+    available_modes = ['single', 'adaptive', 'scan']
+    if mode not in available_modes:
       raise NotImplementedError('"{0}" mode is unknown'.format(mode))
-    elif mode=='party':
+    elif mode == 'party':
       raise NotImplementedError('"party mode" not implemented yet')
 
-    modinit = modlist.index(mode)
+    current_mode_index = available_modes.index(mode)
 
-    self.valname = 'herakoi'
+    self.virtual_port_name = 'herakoi'
 
   # Build virtual MIDI port
   # -------------------------------------
     midinew = rtmidi.MidiOut()
 
-    if midinew.get_ports(): midinew.open_port(port.get('value',0))
-    else: midinew.open_virtual_port(port.get('name',self.valname))
+    if midinew.get_ports(): midinew.open_port(port.get('value', 0))
+    else: midinew.open_virtual_port(port.get('name', self.virtual_port_name))
 
-    self.midiout = mido.open_output(port.get('name',self.valname),virtual=True)
+    self.midi_output = mido.open_output(port.get('name', self.virtual_port_name), virtual=True)
 
   # Start capture from webcam
   # -------------------------------------
-    self.imgfull = kwargs.get('fullscreen',False)
-    self.padfull = kwargs.get('pad',False) if self.imgfull else False
+    self.fullscreen_mode = kwargs.get('fullscreen', False)
+    self.pad_fullscreen   = kwargs.get('pad', False) if self.fullscreen_mode else False
 
-    if self.imgfull:
-      screen = pygame.display.set_mode((scrw,scrh),pygame.FULLSCREEN)
+    if self.fullscreen_mode:
+      init_screen_dimensions()
+      screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 
     while True:
-      self.opvideo = cv2.VideoCapture(video)
-      self.opmusic = gethsv(imgpath[imginit])
+      self.video_capture = cv2.VideoCapture(video)
+      self.target_image  = ImageToHSV(image_paths[current_image_index])
 
-      if not self.imgfull:
-        cv2.namedWindow('mixframe',cv2.WINDOW_NORMAL)
+      if not self.fullscreen_mode:
+        cv2.namedWindow('mixframe', cv2.WINDOW_NORMAL)
 
-      self.mphands = mp.solutions.hands
-      self.mpdraws = mp.solutions.drawing_utils
-      self.mpstyle = mp.solutions.drawing_styles
+      self.mediapipe_hands   = mp.solutions.hands
+      self.mediapipe_drawing = mp.solutions.drawing_utils
+      self.mediapipe_style   = mp.solutions.drawing_styles
 
-      self.opindex = 8
-      self.opthumb = 4
-      
-      if mode=='adaptive':
-        self.oppatch = None
+      self.index_finger_tip = 8
+      self.thumb_tip        = 4
+
+      if mode == 'adaptive':
+        self.sonification_box_size = None
       else:
-        self.oppatch = np.minimum(self.opmusic.w,self.opmusic.h)
-        self.oppatch = int(np.clip((box/100)*self.oppatch,2,None))
-      
-      self.opcolor = {'Left': (0,255,  0), 
-                     'Right': (0,255,255)}
+        self.sonification_box_size = np.minimum(self.target_image.width, self.target_image.height)
+        self.sonification_box_size = int(np.clip((box / 100) * self.sonification_box_size, 2, None))
+
+      self.hand_colors = {'Left':  (0, 255,   0),
+                          'Right': (0, 255, 255)}
 
       if 'volume' in kwargs:
-        vlims = (np.interp(kwargs['volume'],(0,100),(0,127)),127)
-      else: vlims = vlims_
+        velocity_range = (np.interp(kwargs['volume'], (0, 100), (0, 127)), 127)
+      else: velocity_range = DEFAULT_VELOCITY_RANGE
 
-      flims = kwargs.get('notes',flims_)
+      note_range = kwargs.get('notes', DEFAULT_NOTE_RANGE)
 
-      match = [re.match(r'^(?P<n>[A-Ga-g])(?P<off>[#b!]?)(?P<oct>[+-]?\d+)$',flims[0]),
-               re.match(r'^(?P<n>[A-Ga-g])(?P<off>[#b!]?)(?P<oct>[+-]?\d+)$',flims[1])]
-      flims = [nametopitch(f) for f in flims]
+      note_match = [re.match(r'^(?P<n>[A-Ga-g])(?P<off>[#b!]?)(?P<oct>[+-]?\d+)$', note_range[0]),
+                    re.match(r'^(?P<n>[A-Ga-g])(?P<off>[#b!]?)(?P<oct>[+-]?\d+)$', note_range[1])]
+      note_range = [note_name_to_midi_pitch(n) for n in note_range]
 
       if 'scale' in kwargs:
-        refscale = getattr(mingus.core.scales,kwargs['scale'][0].capitalize())
-        refscale = refscale(kwargs['scale'][1])
+        musical_scale = getattr(mingus.core.scales, kwargs['scale'][0].capitalize())
+        musical_scale = musical_scale(kwargs['scale'][1])
       else:
-        refscale = mingus.core.scales.Chromatic('C')
-      
-      linscale = []
-      for pi in range(int(match[0].group('oct')),int(match[1].group('oct'))+1):
-        for si in refscale.ascending():
-          linscale.append('{0}{1}'.format(si,pi))
-      linscale = np.array([nametopitch(si) for si in linscale])
+        musical_scale = mingus.core.scales.Chromatic('C')
 
-      linscale = linscale[np.logical_and(linscale>=flims[0],linscale<=flims[1])]
+      scale_notes = []
+      for pi in range(int(note_match[0].group('oct')), int(note_match[1].group('oct')) + 1):
+        for si in musical_scale.ascending():
+          scale_notes.append('{0}{1}'.format(si, pi))
+      scale_notes = np.array([note_name_to_midi_pitch(si) for si in scale_notes])
 
-      self.finterp = scipy.interpolate.interp1d(np.linspace(self.opmusic.hsv[...,2 if self.switch else 0].min(),
-                                                            self.opmusic.hsv[...,2 if self.switch else 0].max(),
-                                                            linscale.shape[0]),
-                                                   linscale,kind='nearest-up')
+      scale_notes = scale_notes[np.logical_and(scale_notes >= note_range[0], scale_notes <= note_range[1])]
 
-      self.vinterp = scipy.interpolate.interp1d(np.linspace(self.opmusic.hsv[...,0 if self.switch else 2].min(),
-                                                            self.opmusic.hsv[...,0 if self.switch else 2].max(),
-                                                            10),
-                                                np.linspace(vlims[0],vlims[1],10),kind='linear')
-      
-      self.run(mode,vlims=vlims,flims=flims,**kwargs)
+      self.note_interpolator = scipy.interpolate.interp1d(
+          np.linspace(self.target_image.hsv[..., 2 if self.invert_color_mapping else 0].min(),
+                      self.target_image.hsv[..., 2 if self.invert_color_mapping else 0].max(),
+                      scale_notes.shape[0]),
+          scale_notes, kind='nearest-up')
 
-      if pressed=='esc':
+      self.velocity_interpolator = scipy.interpolate.interp1d(
+          np.linspace(self.target_image.hsv[..., 0 if self.invert_color_mapping else 2].min(),
+                      self.target_image.hsv[..., 0 if self.invert_color_mapping else 2].max(),
+                      10),
+          np.linspace(velocity_range[0], velocity_range[1], 10), kind='linear')
+
+      self.run(mode, vlims=velocity_range, flims=note_range, **kwargs)
+
+      if keyboard_input == 'esc':
         break
       else:
-        if pressed in ['right','left']:
-          if pressed=='right':
-            imginit = imginit+1 if imginit<(len(imgpath)-1) else 0
-          elif pressed=='left':
-            imginit = imginit-1 if imginit>0 else len(imgpath)-1
+        if keyboard_input in ['right', 'left']:
+          if keyboard_input == 'right':
+            current_image_index = current_image_index + 1 if current_image_index < (len(image_paths) - 1) else 0
+          elif keyboard_input == 'left':
+            current_image_index = current_image_index - 1 if current_image_index > 0 else len(image_paths) - 1
 
-        if pressed in ['up','down']:
-          if pressed=='up':
-            modinit = modinit+1 if modinit<(len(modlist)-1) else 0
-          elif pressed=='down':
-            modinit = modinit-1 if modinit>0 else len(modlist)-1
+        if keyboard_input in ['up', 'down']:
+          if keyboard_input == 'up':
+            current_mode_index = current_mode_index + 1 if current_mode_index < (len(available_modes) - 1) else 0
+          elif keyboard_input == 'down':
+            current_mode_index = current_mode_index - 1 if current_mode_index > 0 else len(available_modes) - 1
 
-          mode = modlist[modinit]
-          print('changin mode to "{0}"'.format(mode),modinit)
+          mode = available_modes[current_mode_index]
+          print('changin mode to "{0}"'.format(mode), current_mode_index)
 
-        pressed = None
+        keyboard_input = None
 
 
-# Convert H and B to note and loudness
+# Convert pixel HSV values to MIDI note and velocity
 # =====================================
-  def getmex(self,posx,box):
-    def getval(img):
-      val = np.median(img[np.clip(posx[1]-box[1]//2,0,self.opmusic.h-1):np.clip(posx[1]+box[1]//2,0,self.opmusic.h-1),
-                          np.clip(posx[0]-box[0]//2,0,self.opmusic.w-1):np.clip(posx[0]+box[0]//2,0,self.opmusic.w-1)])
-      vmidi = 0 if np.isnan(val) else val
-      return vmidi
+  def pixel_to_midi(self, position, box_size):
+    """Convert pixel HSV values at a given position to MIDI note and velocity.
 
-    fout = self.finterp(getval(self.opmusic.hsv[...,2 if self.switch else 0]))
-    vout = self.vinterp(getval(self.opmusic.hsv[...,0 if self.switch else 2]))
+    Args:
+      position: [x, y] coordinates in image space
+      box_size: [width, height] of the sampling box around the position
+    Returns:
+      (midi_note, midi_velocity): integer MIDI values
+    """
+    def extract_midi_value(image_channel):
+      median_value = np.median(
+          image_channel[
+              np.clip(position[1] - box_size[1]//2, 0, self.target_image.height - 1):
+              np.clip(position[1] + box_size[1]//2, 0, self.target_image.height - 1),
+              np.clip(position[0] - box_size[0]//2, 0, self.target_image.width  - 1):
+              np.clip(position[0] + box_size[0]//2, 0, self.target_image.width  - 1)])
+      midi_value = 0 if np.isnan(median_value) else median_value
+      return midi_value
 
-    return int(fout), int(vout)
+    midi_note     = self.note_interpolator(extract_midi_value(self.target_image.hsv[..., 2 if self.invert_color_mapping else 0]))
+    midi_velocity = self.velocity_interpolator(extract_midi_value(self.target_image.hsv[..., 0 if self.invert_color_mapping else 2]))
 
-# Draw and return hand markers position
+    return int(midi_note), int(midi_velocity)
+
+# Draw hand landmarks and return finger tip position
 # =====================================
-  def posndraw(self,frame,marks,label,draw=True):
-    if draw: self.mpdraws.draw_landmarks(frame,marks,self.mphands.HAND_CONNECTIONS,None)
+  def get_hand_position_and_draw(self, frame, hand_landmarks, hand_label, draw=True):
+    """Extract index finger position and optionally draw hand landmarks.
 
-    point = marks.landmark[self.opindex]
-    posix = [int(point.x*frame.shape[1]),
-             int(point.y*frame.shape[0]),np.abs(point.z)*300]
+    Args:
+      frame: BGR image to draw on
+      hand_landmarks: MediaPipe hand landmarks object
+      hand_label: 'Left' or 'Right'
+      draw: whether to draw landmarks on frame
+    Returns:
+      [x, y, depth] position of index finger tip in pixel coordinates
+    """
+    if draw: self.mediapipe_drawing.draw_landmarks(frame, hand_landmarks, self.mediapipe_hands.HAND_CONNECTIONS, None)
 
-    if draw and self.oppatch is not None: 
-      cv2.circle(frame,(posix[0],posix[1]),np.clip(int(posix[2]),2,None),self.opcolor[label],-1)
+    finger_point = hand_landmarks.landmark[self.index_finger_tip]
+    position = [int(finger_point.x * frame.shape[1]),
+                int(finger_point.y * frame.shape[0]),
+                np.abs(finger_point.z) * 300]
 
-    return posix
+    if draw and self.sonification_box_size is not None:
+      # Circle radius is depth-based for visual feedback
+      cv2.circle(frame, (position[0], position[1]), np.clip(int(position[2]), 2, None), self.hand_colors[hand_label], -1)
 
-# Rescale image according to input
+    return position
+
+# Crop webcam frame to match target image aspect ratio
 # =====================================
-  def rescale(self,image):
-    if image.shape[1]>image.shape[0]:
-      if (self.opmusic.w<self.opmusic.h) or \
-         (self.opmusic.h/self.opmusic.w)>(image.shape[0]/image.shape[1]):
-        wk = (self.opmusic.w/self.opmusic.h)*image.shape[0]
-        wi = int(0.50*(image.shape[1]-wk))     
-        return image[:,wi:-wi]
-      else: 
-        hk = (self.opmusic.h/self.opmusic.w)*image.shape[1]
-        hi = int(0.50*(image.shape[0]-hk))
-        return image[hi:-hi,:]
+  def crop_frame_to_aspect_ratio(self, image):
+    """Crop webcam frame so its aspect ratio matches the target image."""
+    if image.shape[1] > image.shape[0]:
+      if (self.target_image.width < self.target_image.height) or \
+         (self.target_image.height / self.target_image.width) > (image.shape[0] / image.shape[1]):
+        target_width = (self.target_image.width / self.target_image.height) * image.shape[0]
+        crop_margin  = int(0.50 * (image.shape[1] - target_width))
+        return image[:, crop_margin:-crop_margin]
+      else:
+        target_height = (self.target_image.height / self.target_image.width) * image.shape[1]
+        crop_margin   = int(0.50 * (image.shape[0] - target_height))
+        return image[crop_margin:-crop_margin, :]
     else:
       return image
 
-# Single-user mode
+# Main processing loop
 # =====================================
-  def run(self,mode='single',**kwargs):
-    global pressed
+  def run(self, mode='single', **kwargs):
+    global keyboard_input
 
-    imgonly = kwargs.get('imgonly',False)
+    # Initialize screen dimensions if needed
+    init_screen_dimensions()
 
-    ophands = self.mphands.Hands(max_num_hands=2 if mode=='scan' else 1)
+    show_image_only = kwargs.get('imgonly', False)
 
-    onmusic = False
+    hand_tracker = self.mediapipe_hands.Hands(max_num_hands=2 if mode == 'scan' else 1)
 
-    pxshift = kwargs.get('shift',2)
-    pxshift = (pxshift/100)*np.minimum(self.opmusic.w,self.opmusic.h)
+    note_is_playing = False
 
-    toctime = kwargs.get('toc',0.05)
-    offtime = kwargs.get('off',0.05)
-    tictime = time.time()
+    movement_threshold_pixels = kwargs.get('shift', 2)
+    movement_threshold_pixels = (movement_threshold_pixels / 100) * np.minimum(self.target_image.width, self.target_image.height)
+
+    note_on_delay     = kwargs.get('toc', 0.05)
+    note_change_delay = kwargs.get('off', 0.05)
+    last_position_time = time.time()
 
     while True:
-      _, opframe = self.opvideo.read()
+      _, webcam_frame = self.video_capture.read()
 
-      opframe = self.rescale(opframe)
+      webcam_frame = self.crop_frame_to_aspect_ratio(webcam_frame)
 
-      opframe = cv2.flip(opframe,1)
-      imframe = cv2.cvtColor(opframe,cv2.COLOR_BGR2RGB)
+      webcam_frame = cv2.flip(webcam_frame, 1)
+      rgb_frame    = cv2.cvtColor(webcam_frame, cv2.COLOR_BGR2RGB)
 
-      immusic = self.opmusic.bgr.copy()
-      imhands = ophands.process(imframe)
+      target_image_display = self.target_image.bgr.copy()
+      hand_tracking_results = hand_tracker.process(rgb_frame)
 
-      bhmidif = None
-      bhmidiv = None
+      final_midi_note     = None
+      final_midi_velocity = None
 
-      if imhands.multi_hand_landmarks:
-        if mode=='scan':
-          pxmusic = [0,0,50]
-          for mi, immarks in enumerate(imhands.multi_hand_landmarks):
-            imlabel = imhands.multi_handedness[mi].classification[0].label
-            
-            self.mpdraws.draw_landmarks(immusic,immarks,self.mphands.HAND_CONNECTIONS,None)
-            self.mpdraws.draw_landmarks(opframe,immarks,self.mphands.HAND_CONNECTIONS,None)
+      if hand_tracking_results.multi_hand_landmarks:
+        if mode == 'scan':
+          # Scan mode: right hand controls X, left hand controls Y
+          scan_position = [0, 0, 50]
+          for hand_index, hand_landmarks in enumerate(hand_tracking_results.multi_hand_landmarks):
+            hand_label = hand_tracking_results.multi_handedness[hand_index].classification[0].label
 
-            px, py, _ = self.posndraw(immusic,immarks,imlabel,False)
+            self.mediapipe_drawing.draw_landmarks(target_image_display, hand_landmarks, self.mediapipe_hands.HAND_CONNECTIONS, None)
+            self.mediapipe_drawing.draw_landmarks(webcam_frame, hand_landmarks, self.mediapipe_hands.HAND_CONNECTIONS, None)
 
-            if imlabel=='Right': pxmusic[0] = px
-            if imlabel=='Left':  pxmusic[1] = py
+            px, py, _ = self.get_hand_position_and_draw(target_image_display, hand_landmarks, hand_label, False)
 
-            pxpatch = [self.oppatch,self.oppatch]
+            if hand_label == 'Right': scan_position[0] = px
+            if hand_label == 'Left':  scan_position[1] = py
 
-          cv2.circle(immusic,(pxmusic[0],pxmusic[1]),pxmusic[2],(255,255,255),-1)
+            box_size = [self.sonification_box_size, self.sonification_box_size]
 
-          bhmidif, bhmidiv = self.getmex(pxmusic,pxpatch)
+          cv2.circle(target_image_display, (scan_position[0], scan_position[1]), scan_position[2], (255, 255, 255), -1)
+
+          final_midi_note, final_midi_velocity = self.pixel_to_midi(scan_position, box_size)
 
         else:
-          for mi, immarks in enumerate(imhands.multi_hand_landmarks):
-            imlabel = imhands.multi_handedness[mi].classification[0].label
+          for hand_index, hand_landmarks in enumerate(hand_tracking_results.multi_hand_landmarks):
+            hand_label = hand_tracking_results.multi_handedness[hand_index].classification[0].label
 
-            _       = self.posndraw(opframe,immarks,imlabel,True)
+            _ = self.get_hand_position_and_draw(webcam_frame, hand_landmarks, hand_label, True)
 
-            if self.oppatch is None:
-              pxindex = immarks.landmark[self.opindex]
-              pxthumb = immarks.landmark[self.opthumb]
-              pxpatch = [int(np.abs(pxindex.x-pxthumb.x)*immusic.shape[1]),
-                         int(np.abs(pxindex.y-pxthumb.y)*immusic.shape[0])]
+            if self.sonification_box_size is None:
+              # Adaptive mode: pinch gesture controls box size
+              index_finger = hand_landmarks.landmark[self.index_finger_tip]
+              thumb        = hand_landmarks.landmark[self.thumb_tip]
+              box_size     = [int(np.abs(index_finger.x - thumb.x) * target_image_display.shape[1]),
+                              int(np.abs(index_finger.y - thumb.y) * target_image_display.shape[0])]
 
-              _ = self.posndraw(immusic,immarks,imlabel,True)
-              pxmusic = [0.50*(pxindex.x+pxthumb.x),0.50*(pxindex.y+pxthumb.y),0.50*(pxindex.z+pxthumb.z)]
+              _ = self.get_hand_position_and_draw(target_image_display, hand_landmarks, hand_label, True)
+              hand_position = [0.50 * (index_finger.x + thumb.x),
+                               0.50 * (index_finger.y + thumb.y),
+                               0.50 * (index_finger.z + thumb.z)]
 
-              for im in [immusic,opframe]:
-                cv2.rectangle(im,(int(pxthumb.x*im.shape[1]),int(pxthumb.y*im.shape[0])),
-                                 (int(pxindex.x*im.shape[1]),int(pxindex.y*im.shape[0])),self.opcolor[imlabel],1)
-                cv2.circle(im,(int(pxmusic[0]*im.shape[1]),int(pxmusic[1]*im.shape[0])),2,self.opcolor[imlabel],-1)
- 
-              pxmusic = [int(pxmusic[0]*immusic.shape[1]),
-                         int(pxmusic[1]*immusic.shape[0]),int(pxmusic[2]*300)]
+              for im in [target_image_display, webcam_frame]:
+                cv2.rectangle(im, (int(thumb.x        * im.shape[1]), int(thumb.y        * im.shape[0])),
+                                  (int(index_finger.x * im.shape[1]), int(index_finger.y * im.shape[0])),
+                                  self.hand_colors[hand_label], 1)
+                cv2.circle(im, (int(hand_position[0] * im.shape[1]), int(hand_position[1] * im.shape[0])), 2, self.hand_colors[hand_label], -1)
+
+              hand_position = [int(hand_position[0] * target_image_display.shape[1]),
+                               int(hand_position[1] * target_image_display.shape[0]),
+                               int(hand_position[2] * 300)]
 
             else:
-              pxmusic = self.posndraw(immusic,immarks,imlabel,True)
-              pxpatch = [self.oppatch,self.oppatch]
+              # Single mode: fixed box size, index finger controls position
+              hand_position = self.get_hand_position_and_draw(target_image_display, hand_landmarks, hand_label, True)
+              box_size      = [self.sonification_box_size, self.sonification_box_size]
 
-            if (mode in ['single','adaptive'] and imlabel=='Left') or (mode=='party'):
-              bhmidif, bhmidiv = self.getmex(pxmusic,pxpatch)
-            
-            if (mode in ['single','adaptive'] and imlabel=='Right'):
-              rhmidif, rhmidiv = self.getmex(pxmusic,pxpatch)
+            if (mode in ['single', 'adaptive'] and hand_label == 'Left') or (mode == 'party'):
+              final_midi_note, final_midi_velocity = self.pixel_to_midi(hand_position, box_size)
 
-              bhmidif = rhmidif if bhmidif is None else int(0.50*(rhmidif+bhmidif))
-              bhmidiv = rhmidiv if bhmidiv is None else int(0.50*(rhmidiv+bhmidiv))
+            if mode in ['single', 'adaptive'] and hand_label == 'Right':
+              right_hand_note, right_hand_velocity = self.pixel_to_midi(hand_position, box_size)
 
-        if mode in ['single','adaptive','scan']:
-          if (bhmidif is not None) and (bhmidiv is not None):
-            if time.time()-tictime>toctime and not onmusic:
-              self.midiout.send(mido.Message('note_on',channel=8,note=bhmidif,velocity=bhmidiv))
-              pxmusicold = pxmusic
-              onmusic = True
+              final_midi_note     = right_hand_note     if final_midi_note     is None else int(0.50 * (right_hand_note     + final_midi_note))
+              final_midi_velocity = right_hand_velocity if final_midi_velocity is None else int(0.50 * (right_hand_velocity + final_midi_velocity))
 
-            if time.time()-tictime>toctime+offtime and np.hypot(pxmusicold[0]-pxmusic[0],pxmusicold[1]-pxmusic[1])>pxshift:
-              self.midiout.send(mido.Message('note_off',channel=8,note=bhmidif))
-              self.panic(); onmusic = False
-              
-              tictime = time.time()
-          else: self.panic()
-      else: self.panic()
+        if mode in ['single', 'adaptive', 'scan']:
+          if (final_midi_note is not None) and (final_midi_velocity is not None):
+            if time.time() - last_position_time > note_on_delay and not note_is_playing:
+              self.midi_output.send(mido.Message('note_on', channel=8, note=final_midi_note, velocity=final_midi_velocity))
+              previous_hand_position = hand_position
+              note_is_playing = True
 
-      mixframe = immusic
+            if time.time() - last_position_time > note_on_delay + note_change_delay and \
+               np.hypot(previous_hand_position[0] - hand_position[0], previous_hand_position[1] - hand_position[1]) > movement_threshold_pixels:
+              self.midi_output.send(mido.Message('note_off', channel=8, note=final_midi_note))
+              self.stop_all_notes(); note_is_playing = False
 
-      if self.imgfull:
-        hm, wm, _ = mixframe.shape
+              last_position_time = time.time()
+          else: self.stop_all_notes()
+      else: self.stop_all_notes()
 
-        if self.padfull:
-          if (hm/wm)>(scrh/scrw):
-            resframe = cv2.resize(mixframe,None,fx=scrh/hm,fy=scrh/hm)
-            mixframe = np.zeros((scrh,scrw,mixframe.shape[2]),dtype=mixframe.dtype)
-            mixframe[:,(scrw-resframe.shape[1])//2:(scrw-resframe.shape[1])//2+resframe.shape[1],:] = resframe.copy()
-          else:    
-            resframe = cv2.resize(mixframe,None,fx=scrw/wm,fy=scrw/wm)
-            mixframe = np.zeros((scrh,scrw,mixframe.shape[2]),dtype=mixframe.dtype)
-            mixframe[(scrh-resframe.shape[0])//2:(scrh-resframe.shape[0])//2+resframe.shape[0],:,:] = resframe.copy()
-        else:
-          if (hm/wm)>(scrh/scrw): 
-            mixframe = cv2.resize(mixframe,None,fx=scrw/wm,fy=scrw/wm)
-            mixframe = mixframe[(mixframe.shape[0]-scrh)//2:(mixframe.shape[0]-scrh)//2+scrh,:,:]
+      display_frame = target_image_display
+
+      if self.fullscreen_mode:
+        display_height, display_width, _ = display_frame.shape
+
+        if self.pad_fullscreen:
+          if (display_height / display_width) > (screen_height / screen_width):
+            resized_frame = cv2.resize(display_frame, None, fx=screen_height / display_height, fy=screen_height / display_height)
+            display_frame = np.zeros((screen_height, screen_width, display_frame.shape[2]), dtype=display_frame.dtype)
+            display_frame[:, (screen_width - resized_frame.shape[1])//2:(screen_width - resized_frame.shape[1])//2 + resized_frame.shape[1], :] = resized_frame.copy()
           else:
-            mixframe = cv2.resize(mixframe,None,fx=scrh/hm,fy=scrh/hm)
-            mixframe = mixframe[:,(mixframe.shape[1]-scrw)//2:(mixframe.shape[1]-scrw)//2+scrw,:]
+            resized_frame = cv2.resize(display_frame, None, fx=screen_width / display_width, fy=screen_width / display_width)
+            display_frame = np.zeros((screen_height, screen_width, display_frame.shape[2]), dtype=display_frame.dtype)
+            display_frame[(screen_height - resized_frame.shape[0])//2:(screen_height - resized_frame.shape[0])//2 + resized_frame.shape[0], :, :] = resized_frame.copy()
+        else:
+          if (display_height / display_width) > (screen_height / screen_width):
+            display_frame = cv2.resize(display_frame, None, fx=screen_width / display_width, fy=screen_width / display_width)
+            display_frame = display_frame[(display_frame.shape[0] - screen_height)//2:(display_frame.shape[0] - screen_height)//2 + screen_height, :, :]
+          else:
+            display_frame = cv2.resize(display_frame, None, fx=screen_height / display_height, fy=screen_height / display_height)
+            display_frame = display_frame[:, (display_frame.shape[1] - screen_width)//2:(display_frame.shape[1] - screen_width)//2 + screen_width, :]
 
-        if not imgonly:            
-          opframe  = cv2.resize(opframe,None,fx=0.20*mixframe.shape[0]/opframe.shape[0],
-                                             fy=0.20*mixframe.shape[0]/opframe.shape[0])
-          mixframe[                  int(0.01*mixframe.shape[0]):opframe.shape[0]+int(0.01*mixframe.shape[0]),
-                   -opframe.shape[1]-int(0.01*mixframe.shape[0]):                -int(0.01*mixframe.shape[0])] = opframe
-        
-        mixframe = cv2.rotate(mixframe, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        mixframe = cv2.flip(mixframe,0)
-        mixframe = cv2.cvtColor(mixframe, cv2.COLOR_BGR2RGB)
-        mixframe = pygame.surfarray.make_surface(mixframe)
-        
-        screen.blit(mixframe,(0,0))
+        if not show_image_only:
+          webcam_frame = cv2.resize(webcam_frame, None,
+                                    fx=0.20 * display_frame.shape[0] / webcam_frame.shape[0],
+                                    fy=0.20 * display_frame.shape[0] / webcam_frame.shape[0])
+          display_frame[    int(0.01 * display_frame.shape[0]):webcam_frame.shape[0] + int(0.01 * display_frame.shape[0]),
+                        -webcam_frame.shape[1] - int(0.01 * display_frame.shape[0]):  -int(0.01 * display_frame.shape[0])] = webcam_frame
+
+        display_frame = cv2.rotate(display_frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        display_frame = cv2.flip(display_frame, 0)
+        display_frame = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
+        display_frame = pygame.surfarray.make_surface(display_frame)
+
+        screen.blit(display_frame, (0, 0))
         pygame.display.update()
       else:
-        if not imgonly:
-          opframe = cv2.resize(opframe,None,fx=immusic.shape[0]/opframe.shape[0],fy=immusic.shape[0]/opframe.shape[0])
+        if not show_image_only:
+          webcam_frame  = cv2.resize(webcam_frame, None,
+                                     fx=target_image_display.shape[0] / webcam_frame.shape[0],
+                                     fy=target_image_display.shape[0] / webcam_frame.shape[0])
 
-          mixframe = np.zeros((max(opframe.shape[0], immusic.shape[0]), opframe.shape[1] + immusic.shape[1], 3), dtype=np.uint8)
-          mixframe[:opframe.shape[0],:opframe.shape[1],:] = opframe
-          mixframe[:immusic.shape[0],opframe.shape[1]:,:] = immusic
+          display_frame = np.zeros((max(webcam_frame.shape[0], target_image_display.shape[0]),
+                                    webcam_frame.shape[1] + target_image_display.shape[1], 3), dtype=np.uint8)
+          display_frame[:webcam_frame.shape[0],        :webcam_frame.shape[1],         :] = webcam_frame
+          display_frame[:target_image_display.shape[0], webcam_frame.shape[1]:,         :] = target_image_display
 
-        hm, wm, _ = mixframe.shape
+        display_height, display_width, _ = display_frame.shape
 
-        if   (hm/wm)>(scrh/scrw):
-          hr = int((0.90 if imgonly else fill)*scrh)
-          wr = int((0.90 if imgonly else fill)*scrh*wm/hm)
-        elif (hm/wm)<=(scrh/scrw):
-          hr = int((0.90 if imgonly else fill)*scrw*hm/wm)
-          wr = int((0.90 if imgonly else fill)*scrw)
+        if   (display_height / display_width) > (screen_height / screen_width):
+          window_height = int((0.90 if show_image_only else window_fill_ratio) * screen_height)
+          window_width  = int((0.90 if show_image_only else window_fill_ratio) * screen_height * display_width / display_height)
+        elif (display_height / display_width) <= (screen_height / screen_width):
+          window_height = int((0.90 if show_image_only else window_fill_ratio) * screen_width * display_height / display_width)
+          window_width  = int((0.90 if show_image_only else window_fill_ratio) * screen_width)
 
       # Show the combined image in a window
-        cv2.imshow('mixframe',mixframe)
-        cv2.resizeWindow('mixframe',wr,hr)
+        cv2.imshow('mixframe', display_frame)
+        cv2.resizeWindow('mixframe', window_width, window_height)
 
-      if (cv2.waitKey(1) & 0xFF == ord('q')) or (pressed is not None): break
+      if (cv2.waitKey(1) & 0xFF == ord('q')) or (keyboard_input is not None): break
 
-    self.opvideo.release()
+    self.video_capture.release()
     cv2.destroyAllWindows()
     cv2.waitKey(1)
 
-# Turn off all MIDI notes
+# Stop all currently playing MIDI notes
 # =====================================
-  def panic(self):
-    for note in range(0,127):
-      self.midiout.send(mido.Message('note_off',channel=8,note=note))
-    self.midiout.reset()
+  def stop_all_notes(self):
+    """Send note_off for all MIDI notes to prevent stuck notes."""
+    for note in range(0, 127):
+      self.midi_output.send(mido.Message('note_off', channel=8, note=note))
+    self.midi_output.reset()
